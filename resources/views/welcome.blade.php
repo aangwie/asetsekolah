@@ -638,7 +638,7 @@
     <!-- Footer -->
     <footer class="bg-white border-t border-slate-200 mt-auto py-6">
         <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
-            <p>&copy; 2026 Aplikasi Manajemen Aset Sekolah (Laravel 12 & Tailwind CSS 4). Hak Cipta Dilindungi.</p>
+            <p>&copy; 2026 Aplikasi Manajemen Aset Sekolah. Hak Cipta Dilindungi. | Dev By Aang Wirawan</p>
         </div>
     </footer>
 

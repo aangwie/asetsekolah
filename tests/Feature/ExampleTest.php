@@ -364,6 +364,67 @@ class ExampleTest extends TestCase
             ->assertSee('Total masuk', false);
     }
 
+    public function test_dashboard_shows_buildings_rooms_and_active_loans(): void
+    {
+        $user = \App\Models\User::factory()->create();
+        $b = \App\Models\Building::create(['code' => 'GDG-D', 'name' => 'Gedung D']);
+        \App\Models\Location::create(['code' => 'R-D-01', 'name' => 'Ruang 01', 'building_id' => $b->id]);
+        $asset = \App\Models\Asset::create([
+            'asset_code' => 'AST-2026-KIBB-0301', 'name' => 'Laptop Aktif', 'kib_type' => 'B',
+            'acquisition_date' => '2026-05-01', 'acquisition_value' => 8000000, 'funding_source' => 'BOS',
+        ]);
+        \App\Models\AssetOutflow::create([
+            'asset_id' => $asset->id, 'outflow_date' => '2026-09-01', 'location_type' => 'Luar Sekolah',
+            'borrower_name' => 'Ani', 'loan_date' => '2026-09-01',
+        ]);
+        $this->actingAs($user)->get('/dashboard')->assertOk()
+            ->assertSee('Jumlah Gedung', false)->assertSee('Jumlah Ruang', false)
+            ->assertSee('Belum Kembali', false)->assertSee('Ani', false);
+    }
+
+    private function makeXlsx(array $rows, string $path): void
+    {
+        $s = new \PhpOffice\PhpSpreadsheet\Spreadsheet;
+        $s->getActiveSheet()->fromArray($rows, null, 'A1');
+        (new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($s))->save($path);
+    }
+
+    public function test_building_export_template_import_chunk(): void
+    {
+        $user = \App\Models\User::factory()->create();
+        \App\Models\Building::create(['code' => 'GDG-X', 'name' => 'Gedung X']);
+        $this->actingAs($user)->get('/buildings/export')->assertOk()
+            ->assertHeader('content-type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        $this->actingAs($user)->get('/buildings/template')->assertOk()->assertHeader('content-disposition', 'attachment; filename=template-gedung.xlsx');
+        $this->actingAs($user)->get('/buildings')->assertSee('impBar', false)->assertSee('Template', false);
+        $p = tempnam(sys_get_temp_dir(), 'bdg').'.xlsx';
+        $this->makeXlsx([['kode', 'nama', 'keterangan'], ['GDG-I1', 'Gedung Impor 1', 'ket'], ['', '', ''], ['GDG-I2', 'Gedung Impor 2', '']], $p);
+        $pre = $this->actingAs($user)->postJson('/buildings/import-preview', ['file' => new \Illuminate\Http\UploadedFile($p, 'g.xlsx', null, null, true)]);
+        $pre->assertOk()->assertJson(['total' => 2]);
+        $token = $pre->json('token');
+        $this->actingAs($user)->postJson('/buildings/import-chunk', ['token' => $token, 'offset' => 0, 'limit' => 200])
+            ->assertOk()->assertJson(['ok' => 2, 'errors' => []]);
+        $this->assertDatabaseHas('buildings', ['code' => 'GDG-I1']);
+        @unlink($p);
+    }
+
+    public function test_location_export_template_import_chunk(): void
+    {
+        $user = \App\Models\User::factory()->create();
+        $b = \App\Models\Building::create(['code' => 'GDG-L', 'name' => 'Gedung L']);
+        $this->actingAs($user)->get('/locations/export')->assertOk();
+        $this->actingAs($user)->get('/locations/template')->assertOk();
+        $this->actingAs($user)->get('/locations')->assertSee('impBar', false)->assertSee('Template', false);
+        $p = tempnam(sys_get_temp_dir(), 'lok').'.xlsx';
+        $this->makeXlsx([['kode', 'nama', 'kode_gedung', 'email_pic'], ['R-L-01', 'Ruang L1', 'GDG-L', ''], ['R-L-02', 'Ruang L2', 'GDG-NO', '']], $p);
+        $pre = $this->actingAs($user)->postJson('/locations/import-preview', ['file' => new \Illuminate\Http\UploadedFile($p, 'r.xlsx', null, null, true)]);
+        $pre->assertOk()->assertJson(['total' => 2]);
+        $res = $this->actingAs($user)->postJson('/locations/import-chunk', ['token' => $pre->json('token'), 'offset' => 0, 'limit' => 200])->assertOk();
+        $this->assertDatabaseHas('locations', ['code' => 'R-L-01', 'building_id' => $b->id]);
+        $this->assertCount(1, $res->json('errors'));
+        @unlink($p);
+    }
+
 
 
 

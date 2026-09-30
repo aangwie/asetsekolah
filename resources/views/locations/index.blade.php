@@ -7,7 +7,18 @@
         <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Ruangan</h2>
         <p class="text-sm text-slate-500 mt-1">Setiap ruang terikat ke satu gedung.</p>
     </div>
-    <a href="{{ route('locations.create') }}" class="inline-flex items-center px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition shadow-sm"><i class="fa-solid fa-plus mr-2"></i> Tambah Ruangan</a>
+    <div class="flex flex-wrap items-center gap-2">
+        <a href="{{ route('locations.template') }}" class="inline-flex items-center px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium transition"><i class="fa-solid fa-file-excel mr-2 text-emerald-600"></i> Template</a>
+        <a href="{{ route('locations.export') }}" class="inline-flex items-center px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium transition"><i class="fa-solid fa-download mr-2 text-blue-600"></i> Export</a>
+        <button type="button" onclick="document.getElementById('impFile').click()" class="inline-flex items-center px-3 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium transition shadow-sm"><i class="fa-solid fa-upload mr-2"></i> Import</button>
+        <input type="file" id="impFile" accept=".xlsx,.xls,.csv" class="hidden">
+        <a href="{{ route('locations.create') }}" class="inline-flex items-center px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition shadow-sm"><i class="fa-solid fa-plus mr-2"></i> Tambah Ruangan</a>
+    </div>
+</div>
+<div id="impWrap" class="hidden bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80">
+    <div class="flex justify-between text-xs font-bold uppercase text-slate-500 mb-2"><span id="impTxt">0%</span><span id="impCnt"></span></div>
+    <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden"><div id="impBar" class="h-3 bg-blue-600 rounded-full transition-all" style="width:0%"></div></div>
+    <ul id="impErr" class="mt-2 text-xs text-red-600 list-disc ml-5 space-y-1"></ul>
 </div>
 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 overflow-x-auto">
     <table id="roomsTable" class="w-full text-sm">
@@ -50,5 +61,24 @@
             });
         });
     })(jQuery);
+    document.getElementById('impFile').addEventListener('change', async (e) => {
+        if (!e.target.files.length) return;
+        const wrap = document.getElementById('impWrap'), bar = document.getElementById('impBar'),
+            txt = document.getElementById('impTxt'), cnt = document.getElementById('impCnt'), err = document.getElementById('impErr');
+        wrap.classList.remove('hidden'); err.innerHTML = ''; bar.style.width = '5%'; txt.textContent = 'Upload...';
+        const fd = new FormData(); fd.append('file', e.target.files[0]); fd.append('_token', '{{ csrf_token() }}');
+        const pre = await (await fetch('{{ route('locations.import-preview') }}', { method: 'POST', body: fd })).json();
+        if (!pre.token) { txt.textContent = 'Gagal upload.'; return; }
+        const total = pre.total, limit = 200; let done = 0, okAll = 0;
+        if (!total) { txt.textContent = 'File kosong.'; return; }
+        while (done < total) {
+            const r = await (await fetch('{{ route('locations.import-chunk') }}', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' }, body: JSON.stringify({ token: pre.token, offset: done, limit }) })).json();
+            done += limit; okAll += r.ok || 0;
+            const p = Math.min(100, Math.round(done / total * 100));
+            bar.style.width = p + '%'; txt.textContent = p + '%'; cnt.textContent = Math.min(done, total) + '/' + total + ' (' + okAll + ' simpan)';
+            (r.errors || []).forEach(m => { const li = document.createElement('li'); li.textContent = m; err.appendChild(li); });
+        }
+        txt.textContent = 'Selesai: ' + okAll + '/' + total; setTimeout(() => location.reload(), 1500);
+    });
 </script>
 @endsection

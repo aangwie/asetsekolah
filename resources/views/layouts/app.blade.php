@@ -81,6 +81,7 @@
                             <a href="{{ route('school-profile.edit') }}" class="block px-4 py-2 text-sm hover:bg-slate-50"><i class="fa-solid fa-school mr-2 text-blue-600"></i>Data Sekolah</a>
                             @role('superadmin')
                             <a href="{{ route('users.index') }}" class="block px-4 py-2 text-sm hover:bg-slate-50"><i class="fa-solid fa-users mr-2 text-emerald-600"></i>Users</a>
+                            <a href="{{ route('web-settings.index') }}" class="block px-4 py-2 text-sm hover:bg-slate-50"><i class="fa-solid fa-globe mr-2 text-purple-600"></i>Web</a>
                             @endrole
                         </div>
                     </div>
@@ -100,7 +101,7 @@
     </main>
     <footer class="bg-white border-t border-slate-200 mt-auto py-6">
         <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
-            <p>&copy; 2026 Aplikasi Manajemen Aset Sekolah (Laravel 12 & Tailwind CSS 4). Hak Cipta Dilindungi.</p>
+            <p>&copy; 2026 Aplikasi Manajemen Aset Sekolah. Hak Cipta Dilindungi. | Dev By Aang Wirawan</p>
         </div>
     </footer>
     @yield('scripts')

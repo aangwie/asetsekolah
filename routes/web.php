@@ -9,6 +9,7 @@ use App\Http\Controllers\LocationController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SchoolProfileController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\WebSettingController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login')->middleware('guest');
@@ -44,9 +45,28 @@ Route::middleware('auth')->group(function () {
     Route::get('/transactions/bhp/keluar/{keluar}/edit', [BhpTransactionController::class, 'editKeluar'])->name('transactions.bhp.keluar.edit');
     Route::put('/transactions/bhp/keluar/{keluar}', [BhpTransactionController::class, 'updateKeluar'])->name('transactions.bhp.keluar.update');
     Route::delete('/transactions/bhp/keluar/{keluar}', [BhpTransactionController::class, 'destroyKeluar'])->name('transactions.bhp.keluar.destroy');
+    Route::get('/buildings/export', [BuildingController::class, 'export'])->name('buildings.export');
+    Route::get('/buildings/template', [BuildingController::class, 'template'])->name('buildings.template');
+    Route::post('/buildings/import-preview', [BuildingController::class, 'importPreview'])->name('buildings.import-preview');
+    Route::post('/buildings/import-chunk', [BuildingController::class, 'importChunk'])->name('buildings.import-chunk');
+    Route::get('/locations/export', [LocationController::class, 'export'])->name('locations.export');
+    Route::get('/locations/template', [LocationController::class, 'template'])->name('locations.template');
+    Route::post('/locations/import-preview', [LocationController::class, 'importPreview'])->name('locations.import-preview');
+    Route::post('/locations/import-chunk', [LocationController::class, 'importChunk'])->name('locations.import-chunk');
     Route::resource('locations', LocationController::class)->except('show');
     Route::resource('buildings', BuildingController::class)->except('show');
     Route::resource('users', UserController::class)->except('show')->middleware('role:superadmin');
+    Route::middleware('role:superadmin')->prefix('web-settings')->name('web-settings.')->group(function () {
+        Route::get('/', [WebSettingController::class, 'index'])->name('index');
+        Route::post('/token', [WebSettingController::class, 'updateToken'])->name('token');
+        Route::post('/pull', [WebSettingController::class, 'pull'])->name('pull');
+        Route::post('/symlink', [WebSettingController::class, 'symlink'])->name('symlink');
+        Route::post('/migrate', [WebSettingController::class, 'migrate'])->name('migrate');
+        Route::post('/clear', [WebSettingController::class, 'clear'])->name('clear');
+        Route::get('/export', [WebSettingController::class, 'export'])->name('export');
+        Route::post('/import', [WebSettingController::class, 'import'])->name('import');
+        Route::post('/clear-log', [WebSettingController::class, 'clearLog'])->name('clear-log');
+    });
     Route::get('/school-profile', [SchoolProfileController::class, 'edit'])->name('school-profile.edit')->middleware('role:superadmin|pengelola_aset');
     Route::put('/school-profile', [SchoolProfileController::class, 'update'])->name('school-profile.update')->middleware('role:superadmin|pengelola_aset');
     Route::get('/laporan/aset/data', [ReportController::class, 'assetData'])->name('reports.asset.data');
