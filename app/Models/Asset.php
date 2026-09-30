@@ -9,9 +9,9 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Asset extends Model
 {
-    protected $fillable = ['asset_code', 'name', 'kib_type', 'location_id', 'acquisition_date', 'acquisition_value', 'funding_source', 'condition', 'status', 'qr_code_path', 'notes'];
+    protected $fillable = ['asset_code', 'name', 'kib_type', 'location_id', 'acquisition_date', 'acquisition_value', 'funding_source', 'proof_path', 'condition', 'status', 'qr_code_path', 'notes'];
 
-    protected $casts = ['acquisition_date' => 'date', 'acquisition_value' => 'decimal:2'];
+    protected $casts = ['acquisition_date' => 'date', 'procurement_year' => 'integer', 'acquisition_value' => 'decimal:2'];
 
     public function location(): BelongsTo
     {
@@ -25,6 +25,8 @@ class Asset extends Model
     public function kibE(): HasOne { return $this->hasOne(KibEOther::class); }
 
     public function loans(): HasMany { return $this->hasMany(AssetLoan::class); }
+
+    public function outflows(): HasMany { return $this->hasMany(AssetOutflow::class); }
 
     // ponytail: QR gen skip, add when Fase 2 (simplesoftwareio/simple-qrcode).
     public function detail(): ?Model

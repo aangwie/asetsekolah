@@ -9,7 +9,7 @@
 </div>
 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 overflow-x-auto"><table id="buildingsTable" class="w-full text-sm">
 <thead><tr class="border-b-2 border-slate-200 text-slate-500 text-xs uppercase"><th class="px-4 py-3 text-left">Kode</th><th class="px-4 py-3 text-left">Nama</th><th class="px-4 py-3 text-center">Jml Ruang</th><th class="px-4 py-3 text-center">Aksi</th></tr></thead>
-<tbody>@foreach($buildings as $b)<tr class="border-b border-slate-100 hover:bg-slate-50"><td class="px-4 py-3 font-mono text-xs font-bold text-blue-600">{{ $b->code }}</td><td class="px-4 py-3 font-semibold">{{ $b->name }}</td><td class="px-4 py-3 text-center">{{ $b->rooms_count }}</td>
+<tbody>@foreach($buildings as $b)<tr class="border-b border-slate-100 hover:bg-slate-50"><td class="px-4 py-3 font-mono text-xs font-bold text-blue-600">{{ $b->code }}</td><td class="px-4 py-3"><div class="font-semibold">{{ $b->name }}</div><div class="text-xs text-slate-500 mt-0.5">{{ $b->description ?? '-' }}</div></td><td class="px-4 py-3 text-center">{{ $b->rooms_count }}</td>
 <td class="px-4 py-3 text-center whitespace-nowrap"><a href="{{ route('buildings.edit', $b) }}" class="p-2 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 transition" title="Edit"><i class="fa-solid fa-pen text-sm"></i></a>
 <form method="POST" action="{{ route('buildings.destroy', $b) }}" class="inline" onsubmit="return confirm('Hapus? Ruang ikut lepas dari gedung.')">@csrf @method('DELETE')<button class="p-2 rounded-lg bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-600 transition ml-1" title="Hapus"><i class="fa-solid fa-trash text-sm"></i></button></form></td></tr>@endforeach</tbody>
 </table></div>

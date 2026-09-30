@@ -7,7 +7,7 @@ Sistem Informasi Manajemen Aset Sekolah & BHP. Inventarisasi aset tetap KIB A–
 - Dashboard: total aset, total nilai, dipinjam, stok menipis, 5 peminjaman terbuka, 5 stok rendah.
 - Auth + RBAC (`spatie/laravel-permission`): `superadmin`, `pengelola_aset`, `guru_staf`.
 - Gedung (`buildings`) + Ruangan (`locations.building_id`, FK `nullOnDelete`) + PIC (`locations.pic_user_id`). Index pakai DataTables client-side (search/sort/paging).
-- Aset Masuk: Tahun Perolehan (simpan `YYYY-01-01`), Jenis KIB A–E, Kode unik, Nama, Harga, Sumber Dana (`BOS,DAK,HIBAH,Komite`), Lokasi opsional tampil `Nama (Gedung)`. Bungkus `DB::transaction`.
+- Aset Masuk: Tahun Perolehan + Tanggal Perolehan (input `date`, tahun wajib cocok dengan tahun tanggal), Jenis KIB A–E, Kode unik, Nama, Harga, Sumber Dana (`BOS,DAK,HIBAH,Komite`), Lokasi opsional tampil `Nama (Gedung)`, Bukti Belanja opsional (nota/kwitansi/BAST: `jpg,jpeg,png,webp,pdf`, maks 500KB; gambar auto-konversi WebP q80 via GD, PDF simpan mentah ke `storage/app/public/proofs`). Bungkus `DB::transaction` + hapus file bila DB gagal. DB: `assets.acquisition_date` DATE sumber tanggal, `assets.procurement_year` kolom generated `YEAR(acquisition_date)` + index, `assets.proof_path` nullable.
 - Placeholder: Aset Keluar, BHP Masuk, BHP Keluar.
 - Master: `assets` + child `kib_a_lands`, `kib_b_equipments`, `kib_c_buildings`, `kib_d_networks`, `kib_e_others`; `bhp_items` + `bhp_transactions` (stok nambah otomatis di model `booted`); `asset_loans`; `school_profiles`; `users`.
 - Users CRUD khusus `role:superadmin`.
@@ -61,5 +61,5 @@ Prasyarat: PHP 8.2+, Composer, MySQL 8 / XAMPP, Node tidak wajib (hanya jika uba
 ## Catatan
 
 - DataTables butuh internet (CDN). Tanpa internet tabel tetap render polos, tanpa search/paging.
-- `procurement_year` simpan `Jan 1`; upgrade ke datepicker penuh bila perlu (`ponytail:` di `AssetTransactionController`).
+- `procurement_year` kolom generated dari `YEAR(acquisition_date)`; backend tolak bila tahun input beda dengan tahun tanggal.
 - Rencana lanjut: server-side DataTables saat baris > ribuan, QR label, export PDF/Excel, modul KIR/peminjaman penuh. Lihat `PLAN.md`.
