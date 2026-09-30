@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source "../**/*.blade.php";
+@source "../**/*.js";
+@source "../**/*.vue";
+
+@theme {
+  --color-school-blue-50: #eff6ff;
+  --color-school-blue-600: #2563eb;
+  --color-school-blue-900: #1e3a8a;
+  --color-school-teal-500: #14b8a6;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
