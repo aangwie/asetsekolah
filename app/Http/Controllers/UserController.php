@@ -12,7 +12,7 @@ class UserController extends Controller
 {
     public function index(): View
     {
-        return view('users.index', ['users' => User::with('roles')->orderBy('name')->paginate(15)]);
+        return view('users.index', ['users' => User::with('roles')->orderBy('name')->get()]);
     }
 
     public function create(): View { return view('users.form', ['user' => new User, 'roles' => Role::pluck('name')]); }

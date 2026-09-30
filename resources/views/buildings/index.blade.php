@@ -52,8 +52,16 @@
     (function($) {
         $(function() {
             $('#buildingsTable').DataTable({
+                responsive: true,
+                pageLength: 10,
                 language: {
-                    url: 'https://cdn.datatables.net/plug-ins/1.13.8/i18n/id.json'
+                    search: "Cari Data:",
+                    lengthMenu: "Tampilkan _MENU_ data",
+                    zeroRecords: "Data tidak ditemukan.",
+                    info: "Halaman _PAGE_ dari _PAGES_ (_TOTAL_ total data)",
+                    infoEmpty: "Tidak ada data tersedia",
+                    infoFiltered: "(difilter dari _MAX_ total data)",
+                    paginate: { first: "Awal", last: "Akhir", next: "Lanjut", previous: "Sebelumnya" }
                 },
                 columnDefs: [{
                     orderable: false,

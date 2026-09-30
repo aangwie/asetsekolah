@@ -11,24 +11,24 @@
     <div class="overflow-x-auto">
         <table class="w-full text-sm" id="reportBhpTable">
             <thead>
-                <tr class="text-left text-xs uppercase text-slate-500 border-b border-slate-200">
-                    <th class="py-2 pr-3">Tanggal</th>
-                    <th class="py-2 pr-3">Barang</th>
-                    <th class="py-2 pr-3">Tipe</th>
-                    <th class="py-2 pr-3 text-right">Qty</th>
-                    <th class="py-2 pr-3">Lokasi</th>
+                <tr class="border-b-2 border-slate-200 text-slate-500 text-xs uppercase">
+                    <th class="px-4 py-3 text-left">Tanggal</th>
+                    <th class="px-4 py-3 text-left">Barang</th>
+                    <th class="px-4 py-3 text-left">Tipe</th>
+                    <th class="px-4 py-3 text-right">Qty</th>
+                    <th class="px-4 py-3 text-left">Lokasi</th>
                 </tr>
             </thead>
             <tbody>
-                @forelse($rows as $r)<tr class="border-b border-slate-100">
-                    <td class="py-2 pr-3">{{ $r->transaction_date?->format('Y-m-d') }}</td>
-                    <td class="py-2 pr-3">{{ $r->item?->name }}</td>
-                    <td class="py-2 pr-3">{{ $r->type === 'in' ? 'Masuk' : 'Keluar' }}</td>
-                    <td class="py-2 pr-3 text-right">{{ $r->quantity }}</td>
-                    <td class="py-2 pr-3">{{ $r->location?->name ?? '-' }}</td>
+                @forelse($rows as $r)<tr class="border-b border-slate-100 hover:bg-slate-50">
+                    <td class="px-4 py-3">{{ $r->transaction_date?->format('Y-m-d') }}</td>
+                    <td class="px-4 py-3">{{ $r->item?->name }}</td>
+                    <td class="px-4 py-3">{{ $r->type === 'in' ? 'Masuk' : 'Keluar' }}</td>
+                    <td class="px-4 py-3 text-right">{{ $r->quantity }}</td>
+                    <td class="px-4 py-3">{{ $r->location?->name ?? '-' }}</td>
                 </tr>
                 @empty<tr>
-                    <td colspan="5" class="py-4 text-center text-slate-400">Tidak ada data.</td>
+                    <td colspan="5" class="px-4 py-6 text-center text-slate-500">Tidak ada data.</td>
                 </tr>@endforelse
             </tbody>
         </table>
@@ -44,4 +44,28 @@
 </div>
 @endif
 @endif
+@endsection
+@section('scripts')
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<script>
+    (function($) {
+        $(function() {
+            $('#reportBhpTable').DataTable({
+                responsive: true,
+                pageLength: 10,
+                language: {
+                    search: "Cari Data:",
+                    lengthMenu: "Tampilkan _MENU_ data",
+                    zeroRecords: "Data tidak ditemukan.",
+                    info: "Halaman _PAGE_ dari _PAGES_ (_TOTAL_ total data)",
+                    infoEmpty: "Tidak ada data tersedia",
+                    infoFiltered: "(difilter dari _MAX_ total data)",
+                    paginate: { first: "Awal", last: "Akhir", next: "Lanjut", previous: "Sebelumnya" }
+                }
+            });
+        });
+    })(jQuery);
+</script>
 @endsection

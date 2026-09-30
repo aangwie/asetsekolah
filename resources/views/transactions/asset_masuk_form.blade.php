@@ -49,7 +49,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeProof()
 <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-(function ($) { $(function () { $('#assetMasukTable').DataTable({ searching: true, paging: true, info: true, lengthChange: true, pageLength: 10, lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'Semua']], columnDefs: [{ targets: -1, orderable: false, searchable: false }], language: { url: 'https://cdn.datatables.net/plug-ins/1.13.8/i18n/id.json' } }); }); })(jQuery);
+(function ($) { $(function () { $('#assetMasukTable').DataTable({ responsive: true, pageLength: 10, language: { search: "Cari Data:", lengthMenu: "Tampilkan _MENU_ data", zeroRecords: "Data tidak ditemukan.", info: "Halaman _PAGE_ dari _PAGES_ (_TOTAL_ total data)", infoEmpty: "Tidak ada data tersedia", infoFiltered: "(difilter dari _MAX_ total data)", paginate: { first: "Awal", last: "Akhir", next: "Lanjut", previous: "Sebelumnya" } }, columnDefs: [{ targets: -1, orderable: false, searchable: false }] }); }); })(jQuery);
 function confirmDelete(e, f) { e.preventDefault(); Swal.fire({ title: 'Hapus aset?', text: 'Data terhapus permanen.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc2626', confirmButtonText: 'Ya, hapus', cancelButtonText: 'Batal' }).then(r => { if (r.isConfirmed) f.submit(); }); return false; }
 </script>
 @endsection

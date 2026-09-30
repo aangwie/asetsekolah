@@ -66,10 +66,50 @@
 </div>
 <div class="grid md:grid-cols-2 gap-4">
     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
-        <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wider mb-3"><i class="fa-solid fa-hand-holding-hand text-blue-600 mr-1"></i> Peminjaman Aktif</h3>@forelse($activeOutflows as $o)<p class="text-sm py-1 border-b border-slate-100">{{ $o->asset->name ?? '-' }} — {{ $o->borrower_name ?? '-' }} (Pinjam: {{ $o->loan_date?->format('d-m-Y') ?? '-' }})</p>@empty<p class="text-sm text-slate-500">Kosong.</p>@endforelse
+        <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wider mb-3"><i class="fa-solid fa-hand-holding-hand text-blue-600 mr-1"></i> Peminjaman Aktif</h3>
+        <div class="overflow-x-auto">
+            <table id="activeLoanTable" class="w-full text-sm">
+                <thead>
+                    <tr class="border-b-2 border-slate-200 text-slate-500 text-xs uppercase">
+                        <th class="px-4 py-3 text-left">Nama Aset</th>
+                        <th class="px-4 py-3 text-left">Peminjam</th>
+                        <th class="px-4 py-3 text-left">Tgl Pinjam</th>
+                    </tr>
+                </thead>
+                <tbody>@forelse($activeOutflows as $o)<tr class="border-b border-slate-100 hover:bg-slate-50">
+                        <td class="px-4 py-3"><div class="font-semibold">{{ $o->asset->name ?? '-' }}</div><div class="font-mono text-xs text-blue-600">{{ $o->asset->asset_code ?? '-' }}</div></td>
+                        <td class="px-4 py-3">{{ $o->borrower_name ?? '-' }}</td>
+                        <td class="px-4 py-3">{{ $o->loan_date?->format('d-m-Y') ?? '-' }}</td>
+                    </tr>@empty<tr><td colspan="3" class="px-4 py-6 text-center text-slate-500">Kosong.</td></tr>@endforelse</tbody>
+            </table>
+        </div>
     </div>
     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
         <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wider mb-3"><i class="fa-solid fa-cubes text-blue-600 mr-1"></i> Stok Menipis</h3>@forelse($lowItems as $i)<p class="text-sm py-1 border-b border-slate-100">{{ $i->name }} ({{ $i->current_stock }}/{{ $i->minimum_stock }})</p>@empty<p class="text-sm text-slate-500">Aman.</p>@endforelse
     </div>
 </div>
+@endsection
+@section('scripts')
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<script>
+    (function($) {
+        $(function() {
+            $('#activeLoanTable').DataTable({
+                responsive: true,
+                pageLength: 10,
+                language: {
+                    search: "Cari Data:",
+                    lengthMenu: "Tampilkan _MENU_ data",
+                    zeroRecords: "Data tidak ditemukan.",
+                    info: "Halaman _PAGE_ dari _PAGES_ (_TOTAL_ total data)",
+                    infoEmpty: "Tidak ada data tersedia",
+                    infoFiltered: "(difilter dari _MAX_ total data)",
+                    paginate: { first: "Awal", last: "Akhir", next: "Lanjut", previous: "Sebelumnya" }
+                }
+            });
+        });
+    })(jQuery);
+</script>
 @endsection

@@ -11,35 +11,35 @@
     <div class="overflow-x-auto">
         <table class="w-full text-sm" id="reportAssetTable">
             <thead>
-                <tr class="text-left text-xs uppercase text-slate-500 border-b border-slate-200">@if($kind === 'mutasi')<th class="py-2 pr-3">Tanggal</th>
-                    <th class="py-2 pr-3">Aset</th>
-                    <th class="py-2 pr-3">Tipe</th>
-                    <th class="py-2 pr-3">Peminjam</th>@else<th class="py-2 pr-3">Kode</th>
-                    <th class="py-2 pr-3">Nama</th>
-                    <th class="py-2 pr-3">KIB</th>
-                    <th class="py-2 pr-3">Lokasi</th>
-                    <th class="py-2 pr-3">Tanggal</th>
-                    <th class="py-2 pr-3 text-right">Nilai</th>@endif
+                <tr class="border-b-2 border-slate-200 text-slate-500 text-xs uppercase">@if($kind === 'mutasi')<th class="px-4 py-3 text-left">Tanggal</th>
+                    <th class="px-4 py-3 text-left">Aset</th>
+                    <th class="px-4 py-3 text-left">Tipe</th>
+                    <th class="px-4 py-3 text-left">Peminjam</th>@else<th class="px-4 py-3 text-left">Kode</th>
+                    <th class="px-4 py-3 text-left">Nama</th>
+                    <th class="px-4 py-3 text-left">KIB</th>
+                    <th class="px-4 py-3 text-left">Lokasi</th>
+                    <th class="px-4 py-3 text-left">Tanggal</th>
+                    <th class="px-4 py-3 text-right">Nilai</th>@endif
                 </tr>
             </thead>
             <tbody>
                 @forelse($rows as $r)
-                @if($kind === 'mutasi')<tr class="border-b border-slate-100">
-                    <td class="py-2 pr-3">{{ $r->outflow_date?->format('Y-m-d') }}</td>
-                    <td class="py-2 pr-3">{{ $r->asset?->name }}</td>
-                    <td class="py-2 pr-3">{{ $r->location_type }}</td>
-                    <td class="py-2 pr-3">{{ $r->borrower_name ?? '-' }}</td>
+                @if($kind === 'mutasi')<tr class="border-b border-slate-100 hover:bg-slate-50">
+                    <td class="px-4 py-3">{{ $r->outflow_date?->format('Y-m-d') }}</td>
+                    <td class="px-4 py-3">{{ $r->asset?->name }}</td>
+                    <td class="px-4 py-3">{{ $r->location_type }}</td>
+                    <td class="px-4 py-3">{{ $r->borrower_name ?? '-' }}</td>
                 </tr>
-                @else<tr class="border-b border-slate-100">
-                    <td class="py-2 pr-3">{{ $r->asset_code }}</td>
-                    <td class="py-2 pr-3">{{ $r->name }}</td>
-                    <td class="py-2 pr-3">KIB {{ $r->kib_type }}</td>
-                    <td class="py-2 pr-3">{{ $r->location?->name ?? '-' }}</td>
-                    <td class="py-2 pr-3">{{ $r->acquisition_date?->format('Y-m-d') }}</td>
-                    <td class="py-2 pr-3 text-right">{{ number_format((float) $r->acquisition_value, 0, ',', '.') }}</td>
+                @else<tr class="border-b border-slate-100 hover:bg-slate-50">
+                    <td class="px-4 py-3">{{ $r->asset_code }}</td>
+                    <td class="px-4 py-3">{{ $r->name }}</td>
+                    <td class="px-4 py-3">KIB {{ $r->kib_type }}</td>
+                    <td class="px-4 py-3">{{ $r->location?->name ?? '-' }}</td>
+                    <td class="px-4 py-3">{{ $r->acquisition_date?->format('Y-m-d') }}</td>
+                    <td class="px-4 py-3 text-right">{{ number_format((float) $r->acquisition_value, 0, ',', '.') }}</td>
                 </tr>@endif
                 @empty<tr>
-                    <td colspan="6" class="py-4 text-center text-slate-400">Tidak ada data.</td>
+                    <td colspan="6" class="px-4 py-6 text-center text-slate-500">Tidak ada data.</td>
                 </tr>@endforelse
             </tbody>
         </table>
@@ -60,4 +60,28 @@
 </div>
 @endif
 @endif
+@endsection
+@section('scripts')
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<script>
+    (function($) {
+        $(function() {
+            $('#reportAssetTable').DataTable({
+                responsive: true,
+                pageLength: 10,
+                language: {
+                    search: "Cari Data:",
+                    lengthMenu: "Tampilkan _MENU_ data",
+                    zeroRecords: "Data tidak ditemukan.",
+                    info: "Halaman _PAGE_ dari _PAGES_ (_TOTAL_ total data)",
+                    infoEmpty: "Tidak ada data tersedia",
+                    infoFiltered: "(difilter dari _MAX_ total data)",
+                    paginate: { first: "Awal", last: "Akhir", next: "Lanjut", previous: "Sebelumnya" }
+                }
+            });
+        });
+    })(jQuery);
+</script>
 @endsection

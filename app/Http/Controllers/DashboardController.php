@@ -20,7 +20,7 @@ class DashboardController extends Controller
             'totalRooms' => Location::count(),
             'borrowed' => AssetOutflow::where('location_type', 'Luar Sekolah')->whereNull('return_date')->count(),
             'lowStock' => BhpItem::whereColumn('current_stock', '<=', 'minimum_stock')->count(),
-            'activeOutflows' => AssetOutflow::with('asset')->where('location_type', 'Luar Sekolah')->whereNull('return_date')->latest()->limit(5)->get(),
+            'activeOutflows' => AssetOutflow::with('asset')->where('location_type', 'Luar Sekolah')->whereNull('return_date')->latest()->get(),
             'lowItems' => BhpItem::whereColumn('current_stock', '<=', 'minimum_stock')->orderBy('current_stock')->limit(5)->get(),
         ]);
     }

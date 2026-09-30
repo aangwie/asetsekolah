@@ -111,23 +111,18 @@
     (function($) {
         $(function() {
             $('#assetKeluarTable').DataTable({
-                searching: true,
-                paging: true,
-                info: true,
-                lengthChange: true,
+                responsive: true,
                 pageLength: 10,
-                lengthMenu: [
-                    [10, 25, 50, 100, -1],
-                    [10, 25, 50, 100, 'Semua']
-                ],
-                columnDefs: [{
-                    targets: -1,
-                    orderable: false,
-                    searchable: false
-                }],
                 language: {
-                    url: 'https://cdn.datatables.net/plug-ins/1.13.8/i18n/id.json'
-                }
+                    search: "Cari Data:",
+                    lengthMenu: "Tampilkan _MENU_ data",
+                    zeroRecords: "Data tidak ditemukan.",
+                    info: "Halaman _PAGE_ dari _PAGES_ (_TOTAL_ total data)",
+                    infoEmpty: "Tidak ada data tersedia",
+                    infoFiltered: "(difilter dari _MAX_ total data)",
+                    paginate: { first: "Awal", last: "Akhir", next: "Lanjut", previous: "Sebelumnya" }
+                },
+                columnDefs: [{ orderable: false, targets: -1 }]
             });
         });
     })(jQuery);

@@ -10,7 +10,7 @@
     <a href="{{ route('users.create') }}" class="inline-flex items-center px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition shadow-sm"><i class="fa-solid fa-user-plus mr-2"></i> Tambah User</a>
 </div>
 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 overflow-x-auto">
-    <table class="w-full text-sm">
+    <table id="usersTable" class="w-full text-sm">
         <thead>
             <tr class="border-b-2 border-slate-200 text-slate-500 text-xs uppercase">
                 <th class="px-4 py-3 text-left">Nama</th>
@@ -29,5 +29,28 @@
             </tr>@endforeach</tbody>
     </table>
 </div>
-<div class="mt-4">{{ $users->links() }}</div>
 @endsection
+@section('scripts')
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<script>
+    (function($) {
+        $(function() {
+            $('#usersTable').DataTable({
+                responsive: true,
+                pageLength: 10,
+                language: {
+                    search: "Cari Data:",
+                    lengthMenu: "Tampilkan _MENU_ data",
+                    zeroRecords: "Data tidak ditemukan.",
+                    info: "Halaman _PAGE_ dari _PAGES_ (_TOTAL_ total data)",
+                    infoEmpty: "Tidak ada data tersedia",
+                    infoFiltered: "(difilter dari _MAX_ total data)",
+                    paginate: { first: "Awal", last: "Akhir", next: "Lanjut", previous: "Sebelumnya" }
+                },
+                columnDefs: [{ orderable: false, targets: -1 }]
+            });
+        });
+    })(jQuery);
+</script>
