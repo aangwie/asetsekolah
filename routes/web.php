@@ -6,6 +6,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BuildingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LocationController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SchoolProfileController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -45,5 +47,12 @@ Route::middleware('auth')->group(function () {
     Route::resource('locations', LocationController::class)->except('show');
     Route::resource('buildings', BuildingController::class)->except('show');
     Route::resource('users', UserController::class)->except('show')->middleware('role:superadmin');
+    Route::get('/school-profile', [SchoolProfileController::class, 'edit'])->name('school-profile.edit')->middleware('role:superadmin|pengelola_aset');
+    Route::put('/school-profile', [SchoolProfileController::class, 'update'])->name('school-profile.update')->middleware('role:superadmin|pengelola_aset');
+    Route::get('/laporan/aset/data', [ReportController::class, 'assetData'])->name('reports.asset.data');
+    Route::get('/laporan/aset/rekap', [ReportController::class, 'assetRekap'])->name('reports.asset.rekap');
+    Route::get('/laporan/aset/kib/{kib}', [ReportController::class, 'assetKib'])->name('reports.asset.kib')->where('kib', '[A-Ea-e]');
+    Route::get('/laporan/aset/mutasi', [ReportController::class, 'assetMutasi'])->name('reports.asset.mutasi');
+    Route::get('/laporan/bhp', [ReportController::class, 'bhp'])->name('reports.bhp.index');
 });
 

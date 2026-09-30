@@ -43,6 +43,28 @@
                             <a href="{{ route('transactions.bhp.keluar') }}" class="block px-4 py-2 text-sm hover:bg-slate-50"><i class="fa-solid fa-arrow-right-from-bracket mr-2 text-red-500"></i>Keluar</a>
                         </div>
                     </div>
+                    <div class="relative" x-data="{ open: false, sub: null }">
+                        <button @click="open = !open; sub = null" @click.away="open = false; sub = null" class="px-3 py-2 rounded-lg text-blue-100 hover:bg-blue-800 transition"><i class="fa-solid fa-file-lines mr-1"></i> Laporan <i class="fa-solid fa-caret-down ml-1"></i></button>
+                        <div x-show="open" x-cloak class="absolute left-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-200 py-2 text-slate-700 z-50">
+                            <div class="relative">
+                                <button @click.stop="sub = sub === 'aset' ? null : 'aset'" class="flex w-full items-center justify-between px-4 py-2 text-sm hover:bg-slate-50"><span><i class="fa-solid fa-boxes-stacked mr-2 text-blue-600"></i>Aset</span><i class="fa-solid fa-caret-right text-slate-400"></i></button>
+                                <div x-show="sub === 'aset'" x-cloak class="md:absolute md:left-full md:top-0 md:ml-1 static ml-4 md:ml-1 mt-1 md:mt-0 w-52 bg-white rounded-xl shadow-lg border border-slate-200 py-2 z-50">
+                                    <a href="{{ route('reports.asset.data') }}" class="block px-4 py-2 text-sm hover:bg-slate-50"><i class="fa-solid fa-boxes-stacked mr-2 text-blue-600"></i>Data Aset</a>
+                                    <a href="{{ route('reports.asset.rekap') }}" class="block px-4 py-2 text-sm hover:bg-slate-50"><i class="fa-solid fa-chart-pie mr-2 text-emerald-600"></i>Rekap Aset</a>
+                                    @foreach(['a','b','c','d','e'] as $k)
+                                    <a href="{{ route('reports.asset.kib', ['kib' => $k]) }}" class="block px-4 py-2 text-sm hover:bg-slate-50"><i class="fa-solid fa-table-list mr-2 text-amber-600"></i>KIB {{ strtoupper($k) }}</a>
+                                    @endforeach
+                                    <a href="{{ route('reports.asset.mutasi') }}" class="block px-4 py-2 text-sm hover:bg-slate-50"><i class="fa-solid fa-arrow-right-arrow-left mr-2 text-purple-600"></i>Mutasi Aset</a>
+                                </div>
+                            </div>
+                            <div class="relative">
+                                <button @click.stop="sub = sub === 'bhp' ? null : 'bhp'" class="flex w-full items-center justify-between px-4 py-2 text-sm hover:bg-slate-50"><span><i class="fa-solid fa-box-open mr-2 text-rose-600"></i>BHP</span><i class="fa-solid fa-caret-right text-slate-400"></i></button>
+                                <div x-show="sub === 'bhp'" x-cloak class="md:absolute md:left-full md:top-0 md:ml-1 static ml-4 md:ml-1 mt-1 md:mt-0 w-52 bg-white rounded-xl shadow-lg border border-slate-200 py-2 z-50">
+                                    <a href="{{ route('reports.bhp.index') }}" class="block px-4 py-2 text-sm hover:bg-slate-50"><i class="fa-solid fa-box-open mr-2 text-rose-600"></i>Laporan BHP</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     @role('superadmin|pengelola_aset')
                     <div class="relative" x-data="{ open: false }">
                         <button @click="open = !open" @click.away="open = false" class="px-3 py-2 rounded-lg text-blue-100 hover:bg-blue-800 transition"><i class="fa-solid fa-location-dot mr-1"></i> Lokasi <i class="fa-solid fa-caret-down ml-1"></i></button>
@@ -52,10 +74,18 @@
                         </div>
                     </div>
                     @endrole
-                    @role('superadmin')
-                    <a href="{{ route('users.index') }}" class="px-3 py-2 rounded-lg text-blue-100 hover:bg-blue-800 transition"><i class="fa-solid fa-users mr-1"></i> Users</a>
+                    @role('superadmin|pengelola_aset')
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" @click.away="open = false" class="px-3 py-2 rounded-lg text-blue-100 hover:bg-blue-800 transition"><i class="fa-solid fa-gear mr-1"></i> Manajemen <i class="fa-solid fa-caret-down ml-1"></i></button>
+                        <div x-show="open" x-cloak class="absolute left-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-200 py-2 text-slate-700 z-50">
+                            <a href="{{ route('school-profile.edit') }}" class="block px-4 py-2 text-sm hover:bg-slate-50"><i class="fa-solid fa-school mr-2 text-blue-600"></i>Data Sekolah</a>
+                            @role('superadmin')
+                            <a href="{{ route('users.index') }}" class="block px-4 py-2 text-sm hover:bg-slate-50"><i class="fa-solid fa-users mr-2 text-emerald-600"></i>Users</a>
+                            @endrole
+                        </div>
+                    </div>
                     @endrole
-                    <a href="{{ route('preview') }}" target="_blank" class="px-3 py-2 rounded-lg text-blue-100 hover:bg-blue-800 transition"><i class="fa-solid fa-globe mr-1"></i> Lihat Website</a>
+                    <!--a href="{{ route('preview') }}" target="_blank" class="px-3 py-2 rounded-lg text-blue-100 hover:bg-blue-800 transition"><i class="fa-solid fa-globe mr-1"></i> Lihat Website</a-->
                     <form method="POST" action="{{ route('logout') }}" class="inline">@csrf<button class="px-3.5 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-medium transition shadow-md"><i class="fa-solid fa-right-from-bracket mr-1"></i> Logout</button></form>
                 </nav>
             </div>

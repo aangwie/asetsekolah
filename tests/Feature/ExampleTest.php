@@ -294,6 +294,77 @@ class ExampleTest extends TestCase
         $this->actingAs($user)->delete('/transactions/bhp/keluar/'.$tx->id)->assertRedirect();
         $this->assertEquals(10, (int) $item->refresh()->current_stock);
     }
+    public function test_school_profile_menu_and_update_converts_logos_to_webp(): void
+    {
+        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'superadmin', 'guard_name' => 'web']);
+        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'pengelola_aset', 'guard_name' => 'web']);
+        $admin = \App\Models\User::factory()->create();
+        $admin->assignRole('superadmin');
+        $this->get('/school-profile')->assertRedirect('/login');
+        $this->actingAs($admin)->get('/dashboard')->assertOk()
+            ->assertSee('Manajemen', false)->assertSee('Data Sekolah', false)->assertSee('Users', false);
+        $this->actingAs($admin)->get('/school-profile')->assertOk()
+            ->assertSee('Nama Sekolah', false)->assertSee('Logo Pemkab', false)->assertSee('Logo Sekolah', false);
+        \Illuminate\Support\Facades\Storage::fake('public');
+        $this->actingAs($admin)->put('/school-profile', [
+            'school_name' => 'SMP 1', 'npsn' => '123', 'address' => 'Jl. A',
+            'logo_pemkab' => \Illuminate\Http\UploadedFile::fake()->image('big.png', 100, 100)->size(600),
+        ])->assertSessionHasErrors('logo_pemkab');
+        $this->actingAs($admin)->put('/school-profile', [
+            'school_name' => 'SMP Negeri 1', 'npsn' => '20123456', 'address' => 'Jl. Merdeka 1',
+            'logo_pemkab' => \Illuminate\Http\UploadedFile::fake()->image('pemkab.png', 100, 100),
+            'logo_sekolah' => \Illuminate\Http\UploadedFile::fake()->image('sekolah.jpg', 100, 100),
+        ])->assertRedirect('/school-profile');
+        $p = \App\Models\SchoolProfile::firstOrFail();
+        $this->assertEquals('SMP Negeri 1', $p->school_name);
+        $this->assertStringEndsWith('.webp', $p->logo_pemkab_path);
+        $this->assertStringEndsWith('.webp', $p->logo_sekolah_path);
+        \Illuminate\Support\Facades\Storage::disk('public')->assertExists($p->logo_pemkab_path);
+        \Illuminate\Support\Facades\Storage::disk('public')->assertExists($p->logo_sekolah_path);
+        $old = $p->logo_pemkab_path;
+        $this->actingAs($admin)->put('/school-profile', [
+            'school_name' => 'SMP Negeri 1',
+            'logo_pemkab' => \Illuminate\Http\UploadedFile::fake()->image('pemkab2.png', 100, 100),
+        ])->assertRedirect('/school-profile');
+        \Illuminate\Support\Facades\Storage::disk('public')->assertMissing($old);
+    }
+    public function test_reports_nested_menu_and_filters(): void
+    {
+        $user = \App\Models\User::factory()->create();
+        $this->actingAs($user)->get('/dashboard')->assertOk()
+            ->assertSee('Laporan', false)->assertSee('Data Aset', false)->assertSee('Rekap Aset', false)
+            ->assertSee('KIB A', false)->assertSee('KIB E', false)->assertSee('Mutasi Aset', false)
+            ->assertSee('Laporan BHP', false);
+        foreach (['/laporan/aset/data', '/laporan/aset/rekap', '/laporan/aset/kib/b', '/laporan/aset/mutasi', '/laporan/bhp'] as $url) {
+            $this->actingAs($user)->get($url)->assertOk()
+                ->assertSee('Filter Laporan', false)->assertSee('Mode Filter', false)
+                ->assertSee('Tanggal Mulai', false)->assertSee('Tampilan', false);
+        }
+        \App\Models\Asset::create(['asset_code' => 'RPT-B-001', 'name' => 'Laptop RPT', 'kib_type' => 'B', 'acquisition_date' => '2026-03-15', 'acquisition_value' => 5000000]);
+        \App\Models\Asset::create(['asset_code' => 'RPT-A-001', 'name' => 'Tanah RPT', 'kib_type' => 'A', 'acquisition_date' => '2025-05-10', 'acquisition_value' => 10000000]);
+        $this->actingAs($user)->get('/laporan/aset/data?filter_mode=tahun&year=2026&view_type=lengkap')->assertOk()
+            ->assertSee('Laptop RPT', false)->assertDontSee('Tanah RPT', false);
+        $this->actingAs($user)->get('/laporan/aset/data?filter_mode=periode&start_date=2026-01-01&end_date=2026-12-31&view_type=rekap')->assertOk()
+            ->assertSee('Total aset', false);
+        $this->actingAs($user)->get('/laporan/aset/kib/b?filter_mode=tahun&year=2026&view_type=lengkap')->assertOk()
+            ->assertSee('Laptop RPT', false)->assertDontSee('Tanah RPT', false);
+        $this->actingAs($user)->get('/laporan/aset/rekap?filter_mode=tahun&year=2026&view_type=rekap')->assertOk()
+            ->assertSee('Total aset', false);
+        $asset = \App\Models\Asset::where('asset_code', 'RPT-B-001')->firstOrFail();
+        \App\Models\AssetOutflow::create(['asset_id' => $asset->id, 'outflow_date' => '2026-06-01', 'location_type' => 'Sekolah']);
+        $this->actingAs($user)->get('/laporan/aset/mutasi?filter_mode=tahun&year=2026&view_type=lengkap')->assertOk()
+            ->assertSee('Laptop RPT', false);
+        $this->actingAs($user)->get('/laporan/aset/mutasi?filter_mode=periode&start_date=2026-01-01&end_date=2026-12-31&view_type=rekap')->assertOk()
+            ->assertSee('Total mutasi', false);
+        $item = \App\Models\BhpItem::create(['code' => 'BHP-RPT-001', 'name' => 'Kertas RPT', 'category' => 'ATK', 'unit' => 'rim', 'initial_stock' => 0, 'current_stock' => 0]);
+        \App\Models\BhpTransaction::create(['bhp_item_id' => $item->id, 'user_id' => $user->id, 'type' => 'in', 'quantity' => 10, 'transaction_date' => '2026-02-01']);
+        $this->actingAs($user)->get('/laporan/bhp?filter_mode=tahun&year=2026&view_type=lengkap')->assertOk()
+            ->assertSee('Kertas RPT', false);
+        $this->actingAs($user)->get('/laporan/bhp?filter_mode=periode&start_date=2026-01-01&end_date=2026-12-31&view_type=rekap')->assertOk()
+            ->assertSee('Total masuk', false);
+    }
+
+
 
 
 
