@@ -9,9 +9,9 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Asset extends Model
 {
-    protected $fillable = ['asset_code', 'name', 'kib_type', 'location_id', 'acquisition_date', 'acquisition_value', 'funding_source', 'proof_path', 'condition', 'status', 'qr_code_path', 'notes'];
+    protected $fillable = ['asset_code', 'name', 'kib_type', 'location_id', 'acquisition_date', 'acquisition_value', 'quantity', 'unit_price', 'funding_source', 'proof_path', 'condition', 'status', 'qr_code_path', 'notes'];
 
-    protected $casts = ['acquisition_date' => 'date', 'procurement_year' => 'integer', 'acquisition_value' => 'decimal:2'];
+    protected $casts = ['acquisition_date' => 'date', 'procurement_year' => 'integer', 'acquisition_value' => 'decimal:2', 'quantity' => 'integer', 'unit_price' => 'decimal:2'];
 
     public function location(): BelongsTo
     {

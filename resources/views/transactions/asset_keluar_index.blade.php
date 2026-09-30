@@ -15,6 +15,7 @@
             <tr class="border-b-2 border-slate-200 text-slate-500 text-xs uppercase">
                 <th class="px-4 py-3 text-left">Tanggal Keluar</th>
                 <th class="px-4 py-3 text-left">Nama Barang</th>
+                <th class="px-4 py-3 text-left">Jml</th>
                 <th class="px-4 py-3 text-left">Lokasi</th>
                 <th class="px-4 py-3 text-left">Penanggung Jawab</th>
                 <th class="px-4 py-3 text-center">Aksi</th>
@@ -26,6 +27,7 @@
                     <div class="font-semibold">{{ $o->asset->name }}</div>
                     <div class="font-mono text-xs text-blue-600">{{ $o->asset->asset_code }}</div>
                 </td>
+                <td class="px-4 py-3">{{ $o->location_type === 'Luar Sekolah' ? ($o->quantity ?? 1) : '-' }}</td>
                 <td class="px-4 py-3">@if($o->location_type === 'Luar Sekolah')<span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-amber-100 text-amber-800">Luar Sekolah</span>@else<span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-emerald-100 text-emerald-800">Sekolah</span>@endif</td>
                 <td class="px-4 py-3">@if($o->location_type === 'Luar Sekolah')<div class="font-semibold">{{ $o->borrower_name }}</div>
                     <div class="text-xs text-slate-500">Pinjam: {{ $o->loan_date->format('d-m-Y') }}</div>@if($o->return_date)<div class="text-xs text-emerald-600">Kembali: {{ $o->return_date->format('d-m-Y') }}</div>@else<div class="text-xs text-amber-600">Belum kembali</div>@endif<span class="text-slate-300">-</span>@endif
@@ -34,7 +36,7 @@
                     <form method="POST" action="{{ route('transactions.asset.keluar.destroy', $o) }}" class="inline" onsubmit="return confirmDelete(event, this)">@csrf @method('DELETE')<button class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 ml-1" title="Hapus"><i class="fa-solid fa-trash text-xs"></i></button></form>
                 </td>
             </tr>@empty<tr>
-                <td colspan="5" class="px-4 py-6 text-center text-slate-500">Belum ada data.</td>
+                <td colspan="6" class="px-4 py-6 text-center text-slate-500">Belum ada data.</td>
             </tr>@endforelse</tbody>
     </table>
 </div>

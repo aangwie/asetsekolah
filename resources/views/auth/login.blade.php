@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Login Petugas - SIMA Sekolah</title>
+    <link rel="icon" type="image/png" href="{{ asset('logo-sima.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -50,7 +51,7 @@
     </main>
     <footer class="bg-white border-t border-slate-200 py-6">
         <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
-            <p>&copy; 2026 Aplikasi Manajemen Aset Sekolah (Laravel 12 & Tailwind CSS 4). Hak Cipta Dilindungi.</p>
+            <p>&copy; 2026 Aplikasi Manajemen Aset Sekolah. Hak Cipta Dilindungi. | Dev By Aang Wirawan</p>
         </div>
     </footer>
 </body>

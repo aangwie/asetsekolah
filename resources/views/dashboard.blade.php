@@ -3,7 +3,7 @@
 @section('content')
 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
     <div>
-        <div class="flex items-center space-x-2 text-xs font-semibold text-blue-600 uppercase tracking-wider mb-1"><span>Panel Petugas</span><span>&bull;</span><span>Ringkasan</span></div>
+        <div class="flex items-center space-x-2 text-xs font-semibold text-blue-600 uppercase tracking-wider mb-1"><span>Panel Admin</span><span>&bull;</span><span>Ringkasan</span></div>
         <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Dashboard Aset & BHP</h2>
         <p class="text-sm text-slate-500 mt-1">Rekap unit aset tetap, nilai perolehan, dan stok barang habis pakai.</p>
     </div>

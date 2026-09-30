@@ -27,6 +27,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/transactions/asset/masuk/{asset}/edit', [AssetTransactionController::class, 'editMasuk'])->name('transactions.asset.masuk.edit');
     Route::put('/transactions/asset/masuk/{asset}', [AssetTransactionController::class, 'updateMasuk'])->name('transactions.asset.masuk.update');
     Route::delete('/transactions/asset/masuk/{asset}', [AssetTransactionController::class, 'destroyMasuk'])->name('transactions.asset.masuk.destroy');
+    Route::get('/transactions/asset/masuk-export', [AssetTransactionController::class, 'exportMasuk'])->name('transactions.asset.masuk.export');
+    Route::get('/transactions/asset/masuk-template', [AssetTransactionController::class, 'templateMasuk'])->name('transactions.asset.masuk.template');
+    Route::post('/transactions/asset/masuk-import-preview', [AssetTransactionController::class, 'importPreviewMasuk'])->name('transactions.asset.masuk.import-preview');
+    Route::post('/transactions/asset/masuk-import-chunk', [AssetTransactionController::class, 'importChunkMasuk'])->name('transactions.asset.masuk.import-chunk');
     Route::get('/transactions/asset/keluar', [AssetTransactionController::class, 'indexKeluar'])->name('transactions.asset.keluar');
     Route::get('/transactions/asset/keluar/create', [AssetTransactionController::class, 'createKeluar'])->name('transactions.asset.keluar.create');
     Route::post('/transactions/asset/keluar', [AssetTransactionController::class, 'storeKeluar'])->name('transactions.asset.keluar.store');

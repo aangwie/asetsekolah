@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Data Aset Sekolah & Barang Habis Pakai - SIMA Sekolah</title>
+    <link rel="icon" type="image/png" href="{{ asset('logo-sima.png') }}">
 
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -112,7 +113,7 @@
 
                 <!-- Navigation Quick Links -->
                 <nav class="flex items-center space-x-2 sm:space-x-3 text-xs sm:text-sm">
-                    <a href="{{ route('home') }}" class="px-3 py-2 rounded-lg bg-blue-800 text-white font-medium hover:bg-blue-700 transition">
+                    <!--a href="{{ route('home') }}" class="px-3 py-2 rounded-lg bg-blue-800 text-white font-medium hover:bg-blue-700 transition">
                         <i class="fa-solid fa-house mr-1"></i> Beranda
                     </a>
                     <a href="#" class="px-3 py-2 rounded-lg text-blue-100 hover:bg-blue-800 transition">
@@ -120,9 +121,9 @@
                     </a>
                     <a href="#" class="px-3 py-2 rounded-lg text-blue-100 hover:bg-blue-800 transition">
                         <i class="fa-solid fa-cubes mr-1"></i> BHP
-                    </a>
+                    </a-->
                     <a href="{{ route('login') }}" class="px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium transition shadow-md">
-                        <i class="fa-solid fa-right-to-bracket mr-1"></i> Login Petugas
+                        <i class="fa-solid fa-right-to-bracket mr-1"></i> Login
                     </a>
                 </nav>
             </div>
@@ -149,9 +150,9 @@
             </div>
             
             <div class="flex items-center gap-2">
-                <button onclick="window.print()" class="inline-flex items-center px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-700 text-sm font-medium hover:bg-slate-50 transition shadow-sm">
+                <!--button onclick="window.print()" class="inline-flex items-center px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-700 text-sm font-medium hover:bg-slate-50 transition shadow-sm">
                     <i class="fa-solid fa-print mr-2 text-slate-500"></i> Cetak Laporan
-                </button>
+                </button-->
             </div>
         </div>
 
