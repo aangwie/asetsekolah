@@ -1,6 +1,10 @@
 <?php
 
 use App\Http\Controllers\AssetTransactionController;
+use App\Models\Asset;
+use App\Models\BhpItem;
+use App\Models\AssetOutflow;
+use App\Models\Location;
 use App\Http\Controllers\BhpTransactionController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BuildingController;
@@ -16,8 +20,35 @@ Route::get('/login', [AuthController::class, 'showLogin'])->name('login')->middl
 Route::post('/login', [AuthController::class, 'login'])->middleware('guest');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
-Route::get('/', fn () => auth()->check() ? redirect()->route('dashboard') : view('welcome'))->name('home');
-Route::get('/preview', fn () => view('welcome'))->name('preview');
+Route::get('/', function () {
+    if (auth()->check()) return redirect()->route('dashboard');
+    $assets = Asset::with('location')->orderByDesc('procurement_year')->orderBy('name')->get();
+    $bhpItems = BhpItem::orderBy('name')->get();
+    $locations = Location::orderBy('name')->get(['id', 'name']);
+    $years = Asset::query()->distinct()->orderByDesc('procurement_year')->pluck('procurement_year')->filter()->values();
+    if ($years->isEmpty()) $years = collect([now()->year]);
+    $perKib = Asset::selectRaw("kib_type, COUNT(*) as `rows`, COALESCE(SUM(quantity),0) as `units`")->groupBy('kib_type')->get()->keyBy('kib_type');
+    return view('welcome', [
+        'assets' => $assets, 'bhpItems' => $bhpItems, 'locations' => $locations, 'years' => $years, 'perKib' => $perKib,
+        'totalUnits' => (int) Asset::sum('quantity'), 'totalTypes' => Asset::count(),
+        'totalBhp' => (int) BhpItem::sum('current_stock'), 'totalRooms' => Location::count(),
+        'borrowed' => (int) AssetOutflow::where('location_type', 'Luar Sekolah')->whereNull('return_date')->count(),
+    ]);
+})->name('home');
+Route::get('/preview', function () {
+    $assets = Asset::with('location')->orderByDesc('procurement_year')->orderBy('name')->get();
+    $bhpItems = BhpItem::orderBy('name')->get();
+    $locations = Location::orderBy('name')->get(['id', 'name']);
+    $years = Asset::query()->distinct()->orderByDesc('procurement_year')->pluck('procurement_year')->filter()->values();
+    if ($years->isEmpty()) $years = collect([now()->year]);
+    $perKib = Asset::selectRaw("kib_type, COUNT(*) as `rows`, COALESCE(SUM(quantity),0) as `units`")->groupBy('kib_type')->get()->keyBy('kib_type');
+    return view('welcome', [
+        'assets' => $assets, 'bhpItems' => $bhpItems, 'locations' => $locations, 'years' => $years, 'perKib' => $perKib,
+        'totalUnits' => (int) Asset::sum('quantity'), 'totalTypes' => Asset::count(),
+        'totalBhp' => (int) BhpItem::sum('current_stock'), 'totalRooms' => Location::count(),
+        'borrowed' => (int) AssetOutflow::where('location_type', 'Luar Sekolah')->whereNull('return_date')->count(),
+    ]);
+})->name('preview');
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');

@@ -145,7 +145,7 @@
                     Data Aset Sekolah & Barang Habis Pakai
                 </h2>
                 <p class="text-sm text-slate-500 mt-1">
-                    Rekapitulasi unit Aset Tetap Sekolah (KIB A s/d KIB E) dan Persediaan Barang Habis Pakai (BHP).
+                    Rekapitulasi {{ number_format($totalUnits ?? 0) }} unit Aset Tetap Sekolah (KIB A s/d KIB E) dan {{ number_format($totalBhp ?? 0) }} stok Barang Habis Pakai (BHP).
                 </p>
             </div>
             
@@ -175,8 +175,8 @@
                         </div>
                     </div>
                     <div class="mt-3">
-                        <h4 class="text-2xl font-black text-white leading-none">1,428</h4>
-                        <p class="text-[11px] text-blue-200 mt-1">Total Seluruh Unit Aset</p>
+                        <h4 class="text-2xl font-black text-white leading-none">{{ number_format($totalUnits ?? 0, 0, ',', '.') }}</h4>
+                        <p class="text-[11px] text-blue-200 mt-1">{{ $totalTypes ?? 0 }} Jenis • Total Seluruh Unit</p>
                     </div>
                 </div>
 
@@ -189,8 +189,8 @@
                         </div>
                     </div>
                     <div class="mt-3">
-                        <h4 class="text-xl font-bold text-slate-900 leading-none">12 <span class="text-xs font-normal text-slate-500">Bidang</span></h4>
-                        <p class="text-[10px] text-emerald-600 mt-1 font-medium"><i class="fa-solid fa-circle-check"></i> Bersertifikat</p>
+                        <h4 class="text-xl font-bold text-slate-900 leading-none">{{ number_format($perKib['A']->units ?? 0, 0, ',', '.') }} <span class="text-xs font-normal text-slate-500">Bidang</span></h4>
+                        <p class="text-[10px] text-slate-500 mt-1 font-medium">{{ $perKib['A']->rows ?? 0 }} Jenis</p>
                     </div>
                 </div>
 
@@ -203,8 +203,8 @@
                         </div>
                     </div>
                     <div class="mt-3">
-                        <h4 class="text-xl font-bold text-slate-900 leading-none">850 <span class="text-xs font-normal text-slate-500">Unit</span></h4>
-                        <p class="text-[10px] text-slate-500 mt-1">Elektronik & Mesin</p>
+                        <h4 class="text-xl font-bold text-slate-900 leading-none">{{ number_format($perKib['B']->units ?? 0, 0, ',', '.') }} <span class="text-xs font-normal text-slate-500">Unit</span></h4>
+                        <p class="text-[10px] text-slate-500 mt-1">{{ $perKib['B']->rows ?? 0 }} Jenis</p>
                     </div>
                 </div>
 
@@ -217,8 +217,8 @@
                         </div>
                     </div>
                     <div class="mt-3">
-                        <h4 class="text-xl font-bold text-slate-900 leading-none">24 <span class="text-xs font-normal text-slate-500">Unit</span></h4>
-                        <p class="text-[10px] text-slate-500 mt-1">Gedung & Ruang</p>
+                        <h4 class="text-xl font-bold text-slate-900 leading-none">{{ number_format($perKib['C']->units ?? 0, 0, ',', '.') }} <span class="text-xs font-normal text-slate-500">Unit</span></h4>
+                        <p class="text-[10px] text-slate-500 mt-1">{{ $perKib['C']->rows ?? 0 }} Jenis</p>
                     </div>
                 </div>
 
@@ -231,8 +231,8 @@
                         </div>
                     </div>
                     <div class="mt-3">
-                        <h4 class="text-xl font-bold text-slate-900 leading-none">18 <span class="text-xs font-normal text-slate-500">Instalasi</span></h4>
-                        <p class="text-[10px] text-slate-500 mt-1">Jaringan & Air</p>
+                        <h4 class="text-xl font-bold text-slate-900 leading-none">{{ number_format($perKib['D']->units ?? 0, 0, ',', '.') }} <span class="text-xs font-normal text-slate-500">Instalasi</span></h4>
+                        <p class="text-[10px] text-slate-500 mt-1">{{ $perKib['D']->rows ?? 0 }} Jenis</p>
                     </div>
                 </div>
 
@@ -245,8 +245,8 @@
                         </div>
                     </div>
                     <div class="mt-3">
-                        <h4 class="text-xl font-bold text-slate-900 leading-none">524 <span class="text-xs font-normal text-slate-500">Eks/Unit</span></h4>
-                        <p class="text-[10px] text-slate-500 mt-1">Buku & Seni</p>
+                        <h4 class="text-xl font-bold text-slate-900 leading-none">{{ number_format($perKib['E']->units ?? 0, 0, ',', '.') }} <span class="text-xs font-normal text-slate-500">Eks/Unit</span></h4>
+                        <p class="text-[10px] text-slate-500 mt-1">{{ $perKib['E']->rows ?? 0 }} Jenis</p>
                     </div>
                 </div>
 
@@ -266,7 +266,7 @@
                     </button>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
                     
                     <!-- Filter 1: Tahun Perolehan / Pengadaan -->
                     <div>
@@ -275,12 +275,9 @@
                         </label>
                         <select id="filter_year" name="year" class="w-full bg-slate-50 border border-slate-300 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 p-2.5 outline-none transition">
                             <option value="">-- Semua Tahun --</option>
-                            <option value="2026">2026 (Tahun Berjalan)</option>
-                            <option value="2025">2025</option>
-                            <option value="2024">2024</option>
-                            <option value="2023">2023</option>
-                            <option value="2022">2022</option>
-                            <option value="2021">2021 & Sebelum</option>
+                            @foreach(($years ?? []) as $y)
+                                <option value="{{ $y }}">{{ $y }}{{ $y == now()->year ? ' (Tahun Berjalan)' : '' }}</option>
+                            @endforeach
                         </select>
                     </div>
 
@@ -302,6 +299,22 @@
                             <optgroup label="Barang Habis Pakai">
                                 <option value="BHP">Barang Habis Pakai (BHP)</option>
                             </optgroup>
+                        </select>
+                    </div>
+
+                    <!-- Filter 3: Lokasi / Ruang -->
+                    <div>
+                        <label for="filter_location" class="block text-xs font-bold text-slate-700 uppercase mb-1.5">
+                            <i class="fa-solid fa-location-dot mr-1"></i> Filter Lokasi / Ruang
+                        </label>
+                        <select id="filter_location" name="location" class="w-full bg-slate-50 border border-slate-300 text-slate-800 text-sm rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 p-2.5 outline-none transition">
+                            <option value="">-- Semua Ruangan --</option>
+                            @if(!collect($locations ?? [])->contains('name', 'Gudang BHP'))
+                            <option value="Gudang BHP">Gudang BHP</option>
+                            @endif
+                            @foreach(($locations ?? []) as $loc)
+                                <option value="{{ $loc->name }}">{{ $loc->name }}</option>
+                            @endforeach
                         </select>
                     </div>
 
@@ -339,230 +352,30 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Row 1: KIB B Laptop -->
-                        <tr>
-                            <td class="text-center font-medium text-slate-400">1</td>
-                            <td class="font-mono text-xs font-bold text-blue-600">AST-2026-KIBB-0012</td>
-                            <td>
-                                <div class="font-semibold text-slate-900">Laptop Asus ExpertBook B1400</div>
-                                <div class="text-xs text-slate-400">SN: N2390192384 | Core i5 / 16GB / 512GB</div>
-                            </td>
-                            <td>
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-                                    <i class="fa-solid fa-laptop mr-1.5 text-blue-600"></i> KIB B (Peralatan)
-                                </span>
-                            </td>
-                            <td>Laboratorium Komputer 1</td>
-                            <td class="text-center font-semibold">2026</td>
-                            <td>
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-emerald-100 text-emerald-800">
-                                    <i class="fa-solid fa-circle-check mr-1"></i> Baik (Tersedia)
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                <button @click="selectedAsset = { code: 'AST-2026-KIBB-0012', name: 'Laptop Asus ExpertBook B1400', category: 'KIB B (Peralatan & Mesin)', year: '2026', location: 'Laboratorium Komputer 1', condition: 'Baik (Tersedia)', spec: 'Intel Core i5, RAM 16GB, SSD 512GB, SN: N2390192384' }; modalOpen = true" 
-                                        class="p-2 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 transition" title="Lihat Detail & QR Label">
-                                    <i class="fa-solid fa-qrcode text-sm"></i>
-                                </button>
-                            </td>
-                        </tr>
-
-                        <!-- Row 2: KIB A Tanah -->
-                        <tr>
-                            <td class="text-center font-medium text-slate-400">2</td>
-                            <td class="font-mono text-xs font-bold text-blue-600">AST-2022-KIBA-0001</td>
-                            <td>
-                                <div class="font-semibold text-slate-900">Tanah Bangunan Sekolah Utama</div>
-                                <div class="text-xs text-slate-400">Sertifikat Hak Pakai No: 12.04.02.01.1.0023 | Luas: 4,250 m²</div>
-                            </td>
-                            <td>
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-amber-100 text-amber-800">
-                                    <i class="fa-solid fa-map-location-dot mr-1.5 text-amber-600"></i> KIB A (Tanah)
-                                </span>
-                            </td>
-                            <td>Area Utama Sekolah</td>
-                            <td class="text-center font-semibold">2022</td>
-                            <td>
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-emerald-100 text-emerald-800">
-                                    <i class="fa-solid fa-shield-halved mr-1"></i> Baik (Sertifikat)
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                <button @click="selectedAsset = { code: 'AST-2022-KIBA-0001', name: 'Tanah Bangunan Sekolah Utama', category: 'KIB A (Tanah)', year: '2022', location: 'Area Utama Sekolah', condition: 'Baik (Sertifikat Hak Pakai)', spec: 'Luas Tanah: 4.250 m², Hak Pakai No: 12.04.02.01.1.0023' }; modalOpen = true" 
-                                        class="p-2 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 transition" title="Lihat Detail & QR Label">
-                                    <i class="fa-solid fa-qrcode text-sm"></i>
-                                </button>
-                            </td>
-                        </tr>
-
-                        <!-- Row 3: BHP Kertas HVS -->
-                        <tr>
-                            <td class="text-center font-medium text-slate-400">3</td>
-                            <td class="font-mono text-xs font-bold text-teal-600">BHP-ATK-2026-003</td>
-                            <td>
-                                <div class="font-semibold text-slate-900">Kertas HVS A4 80gr Sidu</div>
-                                <div class="text-xs text-slate-400">Kategori: ATK Ujian & TU | Satuan: Rim</div>
-                            </td>
-                            <td>
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-teal-100 text-teal-800">
-                                    <i class="fa-solid fa-box-archive mr-1.5 text-teal-600"></i> Barang Habis Pakai
-                                </span>
-                            </td>
-                            <td>Gudang Utama Inventaris</td>
-                            <td class="text-center font-semibold">2026</td>
-                            <td>
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-emerald-100 text-emerald-800">
-                                    Stok: 48 Rim (Tersedia)
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                <button @click="selectedAsset = { code: 'BHP-ATK-2026-003', name: 'Kertas HVS A4 80gr Sidu', category: 'Barang Habis Pakai (BHP)', year: '2026', location: 'Gudang Utama Inventaris', condition: 'Sisa Stok: 48 Rim', spec: 'Consumable Goods - Keperluan Ujian dan Administrasi TU' }; modalOpen = true" 
-                                        class="p-2 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 transition" title="Lihat Detail & QR Label">
-                                    <i class="fa-solid fa-qrcode text-sm"></i>
-                                </button>
-                            </td>
-                        </tr>
-
-                        <!-- Row 4: KIB C Gedung -->
-                        <tr>
-                            <td class="text-center font-medium text-slate-400">4</td>
-                            <td class="font-mono text-xs font-bold text-blue-600">AST-2023-KIBC-0004</td>
-                            <td>
-                                <div class="font-semibold text-slate-900">Gedung Laboratorium & Perpustakaan</div>
-                                <div class="text-xs text-slate-400">2 Lantai | Konstruksi Beton Bertulang Permanen</div>
-                            </td>
-                            <td>
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-purple-100 text-purple-800">
-                                    <i class="fa-solid fa-building mr-1.5 text-purple-600"></i> KIB C (Gedung)
-                                </span>
-                            </td>
-                            <td>Gedung B Lantai 1 & 2</td>
-                            <td class="text-center font-semibold">2023</td>
-                            <td>
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-emerald-100 text-emerald-800">
-                                    <i class="fa-solid fa-circle-check mr-1"></i> Baik
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                <button @click="selectedAsset = { code: 'AST-2023-KIBC-0004', name: 'Gedung Laboratorium & Perpustakaan', category: 'KIB C (Gedung & Bangunan)', year: '2023', location: 'Gedung B Lantai 1 & 2', condition: 'Baik (Beton Bertulang)', spec: 'Luas Lantai: 680 m², Bangunan Permanen 2 Lantai' }; modalOpen = true" 
-                                        class="p-2 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 transition" title="Lihat Detail & QR Label">
-                                    <i class="fa-solid fa-qrcode text-sm"></i>
-                                </button>
-                            </td>
-                        </tr>
-
-                        <!-- Row 5: KIB B Proyektor Rusak Ringan -->
-                        <tr>
-                            <td class="text-center font-medium text-slate-400">5</td>
-                            <td class="font-mono text-xs font-bold text-blue-600">AST-2024-KIBB-0089</td>
-                            <td>
-                                <div class="font-semibold text-slate-900">Proyektor Epson EB-X500 3600 Lumens</div>
-                                <div class="text-xs text-slate-400">SN: X92K012938 | HDMI & VGA Port</div>
-                            </td>
-                            <td>
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
-                                    <i class="fa-solid fa-laptop mr-1.5 text-blue-600"></i> KIB B (Peralatan)
-                                </span>
-                            </td>
-                            <td>Ruang Laboratorium IPA</td>
-                            <td class="text-center font-semibold">2024</td>
-                            <td>
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-amber-100 text-amber-800">
-                                    <i class="fa-solid fa-wrench mr-1"></i> Kurang Baik (Perbaikan)
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                <button @click="selectedAsset = { code: 'AST-2024-KIBB-0089', name: 'Proyektor Epson EB-X500', category: 'KIB B (Peralatan & Mesin)', year: '2024', location: 'Ruang Laboratorium IPA', condition: 'Kurang Baik (Lampu Perlu Diganti)', spec: '3600 Lumens, 3LCD, HDMI, SN: X92K012938' }; modalOpen = true" 
-                                        class="p-2 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 transition" title="Lihat Detail & QR Label">
-                                    <i class="fa-solid fa-qrcode text-sm"></i>
-                                </button>
-                            </td>
-                        </tr>
-
-                        <!-- Row 6: KIB D Jaringan -->
-                        <tr>
-                            <td class="text-center font-medium text-slate-400">6</td>
-                            <td class="font-mono text-xs font-bold text-blue-600">AST-2025-KIBD-0002</td>
-                            <td>
-                                <div class="font-semibold text-slate-900">Jaringan Fiber Optik & Access Point Wi-Fi</div>
-                                <div class="text-xs text-slate-400">Mikrotik CCR1009 Router + 8 Unit Access Point Unifi</div>
-                            </td>
-                            <td>
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-cyan-100 text-cyan-800">
-                                    <i class="fa-solid fa-network-wired mr-1.5 text-cyan-600"></i> KIB D (Jaringan)
-                                </span>
-                            </td>
-                            <td>Seluruh Area Sekolah</td>
-                            <td class="text-center font-semibold">2025</td>
-                            <td>
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-emerald-100 text-emerald-800">
-                                    <i class="fa-solid fa-circle-check mr-1"></i> Baik (Aktif)
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                <button @click="selectedAsset = { code: 'AST-2025-KIBD-0002', name: 'Jaringan Fiber Optik & Access Point Wi-Fi', category: 'KIB D (Jalan, Irigasi & Jaringan)', year: '2025', location: 'Seluruh Area Sekolah', condition: 'Baik (Berfungsi Normal)', spec: 'Kabel FO 1000m, Mikrotik CCR1009, 8x Access Point Unifi' }; modalOpen = true" 
-                                        class="p-2 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 transition" title="Lihat Detail & QR Label">
-                                    <i class="fa-solid fa-qrcode text-sm"></i>
-                                </button>
-                            </td>
-                        </tr>
-
-                        <!-- Row 7: KIB E Koleksi Perpustakaan -->
-                        <tr>
-                            <td class="text-center font-medium text-slate-400">7</td>
-                            <td class="font-mono text-xs font-bold text-blue-600">AST-2024-KIBE-0112</td>
-                            <td>
-                                <div class="font-semibold text-slate-900">Buku Paket Pembelajaran Matematika Kurikulum Merdeka</div>
-                                <div class="text-xs text-slate-400">Penerbit Erlangga | Jumlah: 350 Eksemplar</div>
-                            </td>
-                            <td>
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-rose-100 text-rose-800">
-                                    <i class="fa-solid fa-book mr-1.5 text-rose-600"></i> KIB E (Lainnya)
-                                </span>
-                            </td>
-                            <td>Perpustakaan Utama</td>
-                            <td class="text-center font-semibold">2024</td>
-                            <td>
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-emerald-100 text-emerald-800">
-                                    <i class="fa-solid fa-circle-check mr-1"></i> Baik
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                <button @click="selectedAsset = { code: 'AST-2024-KIBE-0112', name: 'Buku Paket Matematika Kurikulum Merdeka', category: 'KIB E (Aset Lainnya / Perpustakaan)', year: '2024', location: 'Perpustakaan Utama', condition: 'Baik (350 Eks Lengkap)', spec: 'Penerbit Erlangga, Cetakan 2024, Hardcover' }; modalOpen = true" 
-                                        class="p-2 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 transition" title="Lihat Detail & QR Label">
-                                    <i class="fa-solid fa-qrcode text-sm"></i>
-                                </button>
-                            </td>
-                        </tr>
-
-                        <!-- Row 8: BHP Toner Printer -->
-                        <tr>
-                            <td class="text-center font-medium text-slate-400">8</td>
-                            <td class="font-mono text-xs font-bold text-teal-600">BHP-ATK-2026-018</td>
-                            <td>
-                                <div class="font-semibold text-slate-900">Toner Printer HP LaserJet 85A</div>
-                                <div class="text-xs text-slate-400">Kategori: Sparepart Printer | Satuan: Cartridge</div>
-                            </td>
-                            <td>
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-teal-100 text-teal-800">
-                                    <i class="fa-solid fa-box-archive mr-1.5 text-teal-600"></i> Barang Habis Pakai
-                                </span>
-                            </td>
-                            <td>Ruang Tata Usaha (TU)</td>
-                            <td class="text-center font-semibold">2026</td>
-                            <td>
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-rose-100 text-rose-800 animate-pulse">
-                                    <i class="fa-solid fa-triangle-exclamation mr-1"></i> Stok: 2 Unit (Tipis)
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                <button @click="selectedAsset = { code: 'BHP-ATK-2026-018', name: 'Toner Printer HP LaserJet 85A', category: 'Barang Habis Pakai (BHP)', year: '2026', location: 'Ruang Tata Usaha (TU)', condition: 'Stok Kritis: 2 Unit', spec: 'Suku Cadang Printer Operasional Tata Usaha' }; modalOpen = true" 
-                                        class="p-2 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 transition" title="Lihat Detail & QR Label">
-                                    <i class="fa-solid fa-qrcode text-sm"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    </tbody>
+@php $kibLabel=['A'=>'KIB A (Tanah)','B'=>'KIB B (Peralatan & Mesin)','C'=>'KIB C (Gedung & Bangunan)','D'=>'KIB D (Jalan, Irigasi & Jaringan)','E'=>'KIB E (Aset Tetap Lainnya)']; $kibBadge=['A'=>'bg-amber-100 text-amber-800','B'=>'bg-blue-100 text-blue-800','C'=>'bg-purple-100 text-purple-800','D'=>'bg-cyan-100 text-cyan-800','E'=>'bg-rose-100 text-rose-800']; $condBadge=['baik'=>'bg-emerald-100 text-emerald-800','kurang_baik'=>'bg-amber-100 text-amber-800','rusak_berat'=>'bg-rose-100 text-rose-800']; @endphp
+@foreach(($assets ?? collect()) as $a)
+<tr><td class="text-center font-medium text-slate-400">{{ $loop->iteration }}</td>
+<td class="font-mono text-xs font-bold text-blue-600">{{ $a->asset_code }}</td>
+<td><div class="font-semibold text-slate-900">{{ $a->name }}</div><div class="text-xs text-slate-400">{{ \Str::limit($a->notes ?? ('Qty: '.($a->quantity ?? 1)),80) }}</div></td>
+<td><span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium {{ $kibBadge[$a->kib_type] ?? 'bg-slate-100 text-slate-700' }}">{{ $kibLabel[$a->kib_type] ?? $a->kib_type }}</span></td>
+<td>{{ $a->location?->name ?? '-' }}</td>
+<td class="text-center font-semibold">{{ $a->procurement_year ?? $a->acquisition_date?->format('Y') }}</td>
+<td><span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium {{ $condBadge[$a->condition] ?? 'bg-slate-100 text-slate-700' }}">{{ ucwords(str_replace('_',' ',$a->condition)) }} ({{ ucfirst($a->status) }})</span></td>
+<td class="text-center"><button @click='selectedAsset = @js(['code'=>$a->asset_code,'name'=>$a->name,'category'=>($kibLabel[$a->kib_type] ?? $a->kib_type),'year'=>(string)($a->procurement_year ?? $a->acquisition_date?->format('Y')),'location'=>($a->location?->name ?? '-'),'condition'=>($a->condition.' ('.$a->status.')'),'spec'=>($a->notes ?? '-')]); modalOpen = true' class="p-2 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 transition" title="Lihat Detail"><i class="fa-solid fa-qrcode text-sm"></i></button></td></tr>
+@endforeach
+@foreach(($bhpItems ?? collect()) as $b)
+<tr><td class="text-center font-medium text-slate-400">{{ ($assets ?? collect())->count()+$loop->iteration }}</td>
+<td class="font-mono text-xs font-bold text-teal-600">{{ $b->code }}</td>
+<td><div class="font-semibold text-slate-900">{{ $b->name }}</div><div class="text-xs text-slate-400">Kategori: {{ $b->category }} | Satuan: {{ $b->unit }}</div></td>
+<td><span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-teal-100 text-teal-800">Barang Habis Pakai</span></td>
+<td>Gudang BHP</td><td class="text-center font-semibold">-</td>
+<td>@if($b->current_stock<=$b->minimum_stock)<span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-rose-100 text-rose-800">Stok: {{ $b->current_stock }} {{ $b->unit }} (Tipis)</span>@else<span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-emerald-100 text-emerald-800">Stok: {{ $b->current_stock }} {{ $b->unit }}</span>@endif</td>
+<td class="text-center"><button @click='selectedAsset = @js(['code'=>$b->code,'name'=>$b->name,'category'=>'Barang Habis Pakai (BHP)','year'=>'-','location'=>'Gudang BHP','condition'=>('Stok: '.$b->current_stock.' '.$b->unit),'spec'=>('Kategori '.$b->category.', minimum '.$b->minimum_stock.' '.$b->unit)]); modalOpen = true' class="p-2 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 transition" title="Lihat Detail"><i class="fa-solid fa-qrcode text-sm"></i></button></td></tr>
+@endforeach
+@if(($assets ?? collect())->isEmpty() && ($bhpItems ?? collect())->isEmpty())
+<tr><td colspan="8" class="text-center py-8 text-sm text-slate-500">Belum ada data inventaris.</td></tr>
+@endif
+</tbody>
                 </table>
             </div>
         </div>
@@ -672,36 +485,44 @@
             // 1. Filter Berdasarkan Tahun Perolehan (Kolom Index 5)
             $('#filter_year').on('change', function() {
                 var selectedYear = $(this).val();
-                table.column(5).search(selectedYear).draw();
+                if(selectedYear){table.column(5).search('^'+selectedYear+'$',true,false).draw();}else{table.column(5).search('').draw();}
             });
 
             // 2. Filter Berdasarkan Jenis Aset / BHP (Kolom Index 3)
+            // ponytail: regex exact, smart=false cegah "KIB A" cocok ke "KIB B"; add server-side filter when dataset besar
             $('#filter_type').on('change', function() {
                 var selectedType = $(this).val();
-                
+
                 if (selectedType === 'KIB_ALL') {
-                    table.column(3).search('KIB').draw();
+                    table.column(3).search('KIB [A-E] \\(', true, false).draw();
                 } else if (selectedType === 'KIB_A') {
-                    table.column(3).search('KIB A').draw();
+                    table.column(3).search('KIB A \\(', true, false).draw();
                 } else if (selectedType === 'KIB_B') {
-                    table.column(3).search('KIB B').draw();
+                    table.column(3).search('KIB B \\(', true, false).draw();
                 } else if (selectedType === 'KIB_C') {
-                    table.column(3).search('KIB C').draw();
+                    table.column(3).search('KIB C \\(', true, false).draw();
                 } else if (selectedType === 'KIB_D') {
-                    table.column(3).search('KIB D').draw();
+                    table.column(3).search('KIB D \\(', true, false).draw();
                 } else if (selectedType === 'KIB_E') {
-                    table.column(3).search('KIB E').draw();
+                    table.column(3).search('KIB E \\(', true, false).draw();
                 } else if (selectedType === 'BHP') {
-                    table.column(3).search('Barang Habis Pakai').draw();
+                    table.column(3).search('Barang Habis Pakai', true, false).draw();
                 } else {
                     table.column(3).search('').draw();
                 }
             });
 
-            // Reset Filter Button
+
+            // 3. Filter Lokasi (Kolom Index 4)
+            $('#filter_location').on('change', function() {
+                var v=$(this).val();table.column(4).search(v?('^'+v.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'$'):'',true,false).draw();
+            });
+
+            // Reset
             $('#btn-reset-filter').on('click', function() {
                 $('#filter_year').val('');
                 $('#filter_type').val('');
+                $('#filter_location').val('');
                 table.search('').columns().search('').draw();
             });
         });
