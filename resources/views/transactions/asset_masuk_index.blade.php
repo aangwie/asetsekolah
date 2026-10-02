@@ -6,8 +6,9 @@
 <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Aset Masuk</h2>
 <p class="text-sm text-slate-500 mt-1">Pencatatan perolehan aset tetap KIB A–E.</p></div>
 <div class="flex flex-wrap items-center gap-2">
-<a href="{{ route('transactions.asset.masuk.template') }}" class="inline-flex items-center px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium transition"><i class="fa-solid fa-file-excel mr-2 text-emerald-600"></i> Template</a>
-<a href="{{ route('transactions.asset.masuk.export') }}" class="inline-flex items-center px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium transition"><i class="fa-solid fa-download mr-2 text-blue-600"></i> Export</a>
+<select id="tplKib" class="px-3 py-2.5 rounded-xl bg-slate-100 text-slate-700 text-sm font-medium outline-none border border-slate-200" title="Pilih Template KIB"><option value="">Template Umum</option><option value="A">KIB A – Tanah</option><option value="B">KIB B – Peralatan</option><option value="C">KIB C – Gedung</option><option value="D">KIB D – Jalan/Jaringan</option><option value="E">KIB E – Lainnya</option></select>
+<a id="tplBtn" href="{{ route('transactions.asset.masuk.template') }}" class="inline-flex items-center px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium transition"><i class="fa-solid fa-file-excel mr-2 text-emerald-600"></i> Template</a>
+<a id="expBtn" href="{{ route('transactions.asset.masuk.export') }}" class="inline-flex items-center px-3 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium transition"><i class="fa-solid fa-download mr-2 text-blue-600"></i> Export</a>
 <button type="button" onclick="document.getElementById('impFile').click()" class="inline-flex items-center px-3 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium transition shadow-sm"><i class="fa-solid fa-upload mr-2"></i> Import</button>
 <input type="file" id="impFile" accept=".xlsx,.xls,.csv" class="hidden">
 <a href="{{ route('transactions.asset.masuk.create') }}" class="inline-flex items-center px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition shadow-sm"><i class="fa-solid fa-plus mr-2"></i> Catat Aset Masuk</a>
@@ -48,5 +49,8 @@ bar.style.width=p+'%';txt.textContent=p+'%';cnt.textContent=Math.min(done,total)
 (r.errors||[]).forEach(m=>{const li=document.createElement('li');li.textContent=m;err.appendChild(li);});
 }
 txt.textContent='Selesai: '+okAll+'/'+total;setTimeout(()=>location.reload(),1500);
-});</script>
+});
+const tplSel=document.getElementById('tplKib'),tplBtn=document.getElementById('tplBtn'),expBtn=document.getElementById('expBtn');
+if(tplSel&&tplBtn){tplSel.addEventListener('change',()=>{const v=tplSel.value;const bT='{{ route('transactions.asset.masuk.template') }}',bE='{{ route('transactions.asset.masuk.export') }}';tplBtn.href=v?bT+'?kib='+v:bT;if(expBtn)expBtn.href=v?bE+'?kib='+v:bE;});}
+</script>
 @endsection
