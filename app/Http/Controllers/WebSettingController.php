@@ -27,13 +27,30 @@ class WebSettingController extends Controller
         return $a === false ? '' : implode("\n", array_slice($a, -$n));
     }
 
+    private function githubToken(): string
+    {
+        $t = trim((string) env('GITHUB_TOKEN', ''));
+        if ($t !== '') return trim($t, '"\'');
+        $p = base_path('.env');
+        if (is_file($p) && preg_match('/^GITHUB_TOKEN=(.*)$/m', (string) file_get_contents($p), $m)) {
+            return trim(trim($m[1]), '"\'');
+        }
+
+        return '';
+    }
+
     private function git(string $args, ?string $token = null): array
     {
-        // ponytail: token via extraHeader saja, upgrade ke queue bila repo besar
-        $mask = $token ? 'git -c http.extraHeader="Authorization: Bearer ***" '.$args : 'git '.$args;
-        $real = $token ? str_replace('TOKEN', $token, 'git -c http.extraHeader="Authorization: Bearer TOKEN" '.$args) : 'git '.$args;
-        $r = Process::path(base_path())->timeout(120)->run($real);
+        // ponytail: token via Basic x-access-token, upgrade ke queue bila repo besar
+        $mask = $token ? 'git -c credential.helper= -c http.extraHeader="Authorization: Basic ***" '.$args : 'git '.$args;
+        $real = $mask;
+        if ($token) {
+            $basic = base64_encode('x-access-token:'.$token);
+            $real = 'git -c credential.helper= -c http.extraHeader="Authorization: Basic '.$basic.'" '.$args;
+        }
+        $r = Process::path(base_path())->env(['GIT_TERMINAL_PROMPT' => '0', 'GIT_ASKPASS' => 'echo'])->timeout(120)->run($real);
         $out = trim(($r->output() ?: '').($r->errorOutput() ? "\n".$r->errorOutput() : ''));
+        if ($token && $token !== '') $out = str_replace([$token, $basic ?? ''], '***', $out);
 
         return [$r->successful() ? 0 : ($r->exitCode() ?? 1), $out === '' ? '(tanpa output)' : $out, $mask];
     }
@@ -52,7 +69,7 @@ class WebSettingController extends Controller
         [$cb, $branch] = $this->git('status --short --branch');
         [$cl, $commits] = $this->git('log --oneline -5');
         $remote = trim((string) shell_exec('git -C '.escapeshellarg(base_path()).' remote get-url origin 2>&1'));
-        $token = (string) env('GITHUB_TOKEN', '');
+        $token = $this->githubToken();
         $drv = config('database.default');
         $backs = collect(glob(storage_path('app/backups/*.sql') ?: []))
             ->map(fn ($p) => ['name' => basename($p), 'size' => round(filesize($p) / 1024, 1).' KB', 'time' => date('Y-m-d H:i', filemtime($p))])
@@ -73,8 +90,8 @@ class WebSettingController extends Controller
 
     public function updateToken(Request $r)
     {
-        $d = $r->validate(['github_token' => ['required', 'string', 'regex:/^github_pat_[A-Za-z0-9_]{10,}$/']],
-            ['github_token.regex' => 'Format token harus github_patxxxxxxxxxxxx.']);
+        $d = $r->validate(['github_token' => ['required', 'string', 'regex:/^(github_pat_|ghp_)[A-Za-z0-9_]{10,}$/']],
+            ['github_token.regex' => 'Format token harus github_pat_xxx atau ghp_xxx.']);
         self::setEnv('GITHUB_TOKEN', $d['github_token']);
         $this->log('Simpan token', 'PUT .env GITHUB_TOKEN=***', 'Tersimpan ('.substr($d['github_token'], 0, 10).'***).', 0);
 
@@ -83,8 +100,17 @@ class WebSettingController extends Controller
 
     public function pull()
     {
-        $t = (string) env('GITHUB_TOKEN', '');
-        [$code, $out, $mask] = $this->git('pull --rebase --autostash', $t ?: null);
+        $t = $this->githubToken();
+        if ($t === '') {
+            $msg = 'Token GitHub belum tersimpan. Simpan token dulu (github_pat_xxx / ghp_xxx dengan akses Contents read).';
+            $this->log('Update GitHub', 'git pull --rebase --autostash', $msg, 1);
+
+            return back()->with('web', $msg);
+        }
+        [$code, $out, $mask] = $this->git('pull --rebase --autostash', $t);
+        if ($code !== 0 && preg_match('/could not read Username|authentication failed|Invalid username or token|403/i', $out)) {
+            $out .= "\nToken ditolak/kadaluarsa. Buat token baru (classic: repo read) lalu Simpan Token ulang.";
+        }
         $this->log('Update GitHub', $mask, $out, $code);
 
         return back()->with($code === 0 ? 'ok' : 'web', $code === 0 ? 'Update GitHub selesai.' : 'Update gagal: '.$out);
