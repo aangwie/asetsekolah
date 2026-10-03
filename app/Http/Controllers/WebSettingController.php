@@ -112,8 +112,18 @@ class WebSettingController extends Controller
             $out .= "\nToken ditolak/kadaluarsa. Buat token baru (classic: repo read) lalu Simpan Token ulang.";
         }
         $this->log('Update GitHub', $mask, $out, $code);
+        if ($code !== 0) {
+            return back()->with('web', 'Update gagal: '.$out);
+        }
 
-        return back()->with($code === 0 ? 'ok' : 'web', $code === 0 ? 'Update GitHub selesai.' : 'Update gagal: '.$out);
+        $mCode = Artisan::call('migrate', ['--force' => true]);
+        $mOut = trim(Artisan::output()) ?: '(tanpa output)';
+        $this->log('Migrasi table', 'php artisan migrate --force', $mOut, $mCode);
+
+        return back()->with(
+            $mCode === 0 ? 'ok' : 'web',
+            $mCode === 0 ? 'Update GitHub + migrasi selesai.' : 'Pull OK, migrasi gagal: '.$mOut
+        );
     }
 
     public function symlink()
