@@ -52,7 +52,7 @@ class AssetTransactionController extends Controller
             'procurement_year' => 'required|integer|min:1990|max:'.((int) date('Y') + 1),
             'acquisition_date' => 'required|date',
             'kib_type' => 'required|in:A,B,C,D,E',
-            'asset_code' => 'required|string|max:255|unique:assets,asset_code',
+            'asset_code' => 'required|string|max:255',
             'name' => 'required|string|max:255',
             'quantity' => 'required|integer|min:1|max:1000000',
             'unit_price' => 'required|numeric|min:0|max:9999999999999',
@@ -195,7 +195,7 @@ class AssetTransactionController extends Controller
             'procurement_year' => 'required|integer|min:1990|max:'.((int) date('Y') + 1),
             'acquisition_date' => 'required|date',
             'kib_type' => 'required|in:A,B,C,D,E',
-            'asset_code' => 'required|string|max:255|unique:assets,asset_code,'.$asset->id,
+            'asset_code' => 'required|string|max:255',
             'name' => 'required|string|max:255',
             'quantity' => 'required|integer|min:1|max:1000000',
             'unit_price' => 'required|numeric|min:0|max:9999999999999',
@@ -409,13 +409,19 @@ class AssetTransactionController extends Controller
             }
             [$detail, $detailErr] = self::importKibDetail($kib, $r, $no, $yearNow + 1);
             if ($detailErr !== null) { $errors[] = $detailErr; continue; }
-            $asset = Asset::updateOrCreate(['asset_code' => $code], [
-                'name' => $name, 'kib_type' => $kib, 'location_id' => $locId,
-                'acquisition_date' => date('Y-m-d', $ts),
-                'quantity' => (int) $qty, 'unit_price' => $price,
-                'acquisition_value' => $qty * $price, 'funding_source' => $dana,
-            ]);
-            self::saveKibDetail($asset, array_merge(['kib_type' => $kib], $detail));
+            try {
+                $asset = Asset::create([
+                    'asset_code' => $code,
+                    'name' => $name, 'kib_type' => $kib, 'location_id' => $locId,
+                    'acquisition_date' => date('Y-m-d', $ts),
+                    'quantity' => (int) $qty, 'unit_price' => $price,
+                    'acquisition_value' => $qty * $price, 'funding_source' => $dana,
+                ]);
+                self::saveKibDetail($asset, array_merge(['kib_type' => $kib], $detail));
+            } catch (\Throwable $e) {
+                $errors[] = "Baris $no: gagal simpan ({$e->getMessage()}).";
+                continue;
+            }
             $ok++;
         }
         return response()->json(['ok' => $ok, 'errors' => $errors]);
