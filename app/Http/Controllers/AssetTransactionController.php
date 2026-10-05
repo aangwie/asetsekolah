@@ -533,6 +533,8 @@ class AssetTransactionController extends Controller
             'outflow_date' => 'required|date',
             'location_type' => 'required|in:Sekolah,Luar Sekolah',
             'quantity' => 'nullable|integer|min:1|max:1000000',
+            'returned_quantity' => 'nullable|integer|min:0|max:1000000',
+            'has_return' => 'nullable|boolean',
             'borrower_name' => 'required_if:location_type,Luar Sekolah|nullable|string|max:255',
             'loan_date' => 'required_if:location_type,Luar Sekolah|nullable|date',
             'return_date' => 'nullable|date|after_or_equal:loan_date',
@@ -540,27 +542,46 @@ class AssetTransactionController extends Controller
         ]);
         if ($data['location_type'] === 'Sekolah') {
             $data['quantity'] = null;
+            $data['returned_quantity'] = null;
             $data['borrower_name'] = null;
             $data['loan_date'] = null;
             $data['return_date'] = null;
         } else {
             // ponytail: legacy tanpa qty dianggap 1, wajibkan required_if saat semua data lama sudah punya qty.
             $data['quantity'] = $data['quantity'] ?? 1;
+            $hasReturn = $request->boolean('has_return') || ! empty($data['return_date']) || ((int) ($data['returned_quantity'] ?? 0)) > 0;
+            $ret = $hasReturn ? (int) ($data['returned_quantity'] ?? 0) : 0;
+            if ($hasReturn && $ret === 0) $ret = $data['quantity']; // centang kembali tanpa isi = kembali semua
+            if ($ret > $data['quantity']) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['returned_quantity' => "Jumlah kembali maks {$data['quantity']}."]);
+            }
+            if ($ret > 0 && empty($data['return_date'])) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['return_date' => 'Isi tanggal kembali jika ada jumlah dikembalikan.']);
+            }
+            if ($ret === 0) {
+                $data['returned_quantity'] = null;
+                $data['return_date'] = null;
+            } else {
+                $data['returned_quantity'] = $ret;
+            }
             $avail = self::availableMap(Asset::where('id', $data['asset_id'])->get(), $ignore)[$data['asset_id']] ?? 0;
-            if ($data['quantity'] > $avail) {
-                throw \Illuminate\Validation\ValidationException::withMessages(['quantity' => "Stok tidak cukup. Sisa: {$avail}."]);
+            if (($data['quantity'] - (int) ($data['returned_quantity'] ?? 0)) > $avail) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['quantity' => "Stok tidak cukup. Sisa: {$avail} (termasuk akumulasi retur)."]);
             }
         }
+
+        unset($data['has_return']);
 
         return $data;
     }
 
-    /** Sisa = quantity Masuk − pinjam aktif (Luar Sekolah, belum kembali). */
+    /** Sisa = quantity Masuk − sisa pinjam (dipinjam − dikembalikan). */
     private static function availableMap($assets, ?AssetOutflow $ignore = null): array
     {
-        $q = AssetOutflow::where('location_type', 'Luar Sekolah')->whereNull('return_date');
+        $q = AssetOutflow::where('location_type', 'Luar Sekolah')
+            ->whereRaw('(COALESCE(quantity,1) - COALESCE(returned_quantity,0)) > 0');
         if ($ignore) $q->where('id', '!=', $ignore->id);
-        $borrowed = $q->selectRaw('asset_id, SUM(COALESCE(quantity,1)) as total')->groupBy('asset_id')->pluck('total', 'asset_id');
+        $borrowed = $q->selectRaw('asset_id, SUM(COALESCE(quantity,1) - COALESCE(returned_quantity,0)) as total')->groupBy('asset_id')->pluck('total', 'asset_id');
         $map = [];
         foreach ($assets as $a) {
             $map[$a->id] = max(0, ($a->quantity ?? 1) - (int) ($borrowed[$a->id] ?? 0));

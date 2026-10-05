@@ -27,10 +27,27 @@
                     <div class="font-semibold">{{ $o->asset->name }}</div>
                     <div class="font-mono text-xs text-blue-600">{{ $o->asset->asset_code }}</div>
                 </td>
-                <td class="px-4 py-3">{{ $o->location_type === 'Luar Sekolah' ? ($o->quantity ?? 1) : '-' }}</td>
+                <td class="px-4 py-3">{{ $o->location_type === 'Luar Sekolah' ? (($o->quantity ?? 1).($o->returnedQty() > 0 ? ' (kembali '.$o->returnedQty().', sisa '.$o->outstandingQty().')' : '')) : '-' }}</td>
                 <td class="px-4 py-3">@if($o->location_type === 'Luar Sekolah')<span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-amber-100 text-amber-800">Luar Sekolah</span>@else<span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-emerald-100 text-emerald-800">Sekolah</span>@endif</td>
-                <td class="px-4 py-3">@if($o->location_type === 'Luar Sekolah')<div class="font-semibold">{{ $o->borrower_name }}</div>
-                    <div class="text-xs text-slate-500">Pinjam: {{ $o->loan_date->format('d-m-Y') }}</div>@if($o->return_date)<div class="text-xs text-emerald-600">Kembali: {{ $o->return_date->format('d-m-Y') }}</div>@else<div class="text-xs text-amber-600">Belum kembali</div>@endif<span class="text-slate-300">-</span>@endif
+                <td class="px-4 py-3">
+                    @if($o->location_type === 'Luar Sekolah')
+                        <div class="font-semibold">{{ $o->borrower_name }}</div>
+                        <div class="text-xs text-slate-500">Pinjam: {{ $o->loan_date->format('d-m-Y') }}</div>
+                        @if($o->returnedQty() > 0)
+                            <div class="text-xs text-emerald-600">Kembali {{ $o->returnedQty() }}
+                                @if($o->return_date)
+                                    ({{ $o->return_date->format('d-m-Y') }})
+                                @endif
+                            </div>
+                        @endif
+                        @if($o->outstandingQty() > 0)
+                            <div class="text-xs text-amber-600">Sisa {{ $o->outstandingQty() }} belum kembali</div>
+                        @else
+                            <div class="text-xs text-emerald-600">Lunas kembali</div>
+                        @endif
+                    @else
+                        <span class="text-slate-300">-</span>
+                    @endif
                 </td>
                 <td class="px-4 py-3 text-center whitespace-nowrap"><a href="{{ route('transactions.asset.keluar.edit', $o) }}" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-amber-100 text-amber-700 hover:bg-amber-200" title="Ubah"><i class="fa-solid fa-pencil text-xs"></i></a>
                     <form method="POST" action="{{ route('transactions.asset.keluar.destroy', $o) }}" class="inline" onsubmit="return confirmDelete(event, this)">@csrf @method('DELETE')<button class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 ml-1" title="Hapus"><i class="fa-solid fa-trash text-xs"></i></button></form>

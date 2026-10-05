@@ -100,14 +100,23 @@ class ReportController extends Controller
             if ($kib) {
                 $q->where('kib_type', $kib);
             }
+            // ponytail: full stock ledger (per-date balances) when needed.
+            $borrowed = AssetOutflow::where('location_type', 'Luar Sekolah')
+                ->whereRaw('(COALESCE(quantity,1) - COALESCE(returned_quantity,0)) > 0')
+                ->selectRaw('asset_id, SUM(COALESCE(quantity,1) - COALESCE(returned_quantity,0)) as total')
+                ->groupBy('asset_id')->pluck('total', 'asset_id');
+            $visible = fn ($a) => $a->status !== 'dihapus'
+                && (($a->quantity ?? 1) - (int) ($borrowed[$a->id] ?? 0)) > 0;
+            $withAvail = fn ($a) => $a->setAttribute('available', max(0, ($a->quantity ?? 1) - (int) ($borrowed[$a->id] ?? 0)));
             if ($filter['view'] === 'lengkap') {
-                $rows = $q->orderBy('acquisition_date')->get();
+                $rows = $q->orderBy('acquisition_date')->get()->filter($visible)->map($withAvail)->values();
             } else {
-                $all = $q->orderBy('acquisition_date')->get();
+                $all = $q->orderBy('acquisition_date')->get()->filter($visible)->map($withAvail)->values();
                 $summary = [
                     'total' => $all->count(),
+                    'units' => (int) $all->sum('available'),
                     'value' => (float) $all->sum('acquisition_value'),
-                    'per_kib' => $all->groupBy('kib_type')->map(fn ($g) => ['count' => $g->count(), 'value' => (float) $g->sum('acquisition_value')])->all(),
+                    'per_kib' => $all->groupBy('kib_type')->map(fn ($g) => ['count' => $g->count(), 'units' => (int) $g->sum('available'), 'value' => (float) $g->sum('acquisition_value')])->all(),
                 ];
             }
         }

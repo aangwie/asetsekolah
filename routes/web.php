@@ -14,6 +14,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SchoolProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WebSettingController;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login')->middleware('guest');
@@ -32,7 +33,7 @@ Route::get('/', function () {
         'assets' => $assets, 'bhpItems' => $bhpItems, 'locations' => $locations, 'years' => $years, 'perKib' => $perKib,
         'totalUnits' => (int) Asset::sum('quantity'), 'totalTypes' => Asset::count(),
         'totalBhp' => (int) BhpItem::sum('current_stock'), 'totalRooms' => Location::count(),
-        'borrowed' => (int) AssetOutflow::where('location_type', 'Luar Sekolah')->whereNull('return_date')->count(),
+        'borrowed' => (int) AssetOutflow::where('location_type', 'Luar Sekolah')->whereRaw('(COALESCE(quantity,1) - COALESCE(returned_quantity,0)) > 0')->sum(DB::raw('COALESCE(quantity,1) - COALESCE(returned_quantity,0)')),
     ]);
 })->name('home');
 Route::get('/preview', function () {
@@ -46,7 +47,7 @@ Route::get('/preview', function () {
         'assets' => $assets, 'bhpItems' => $bhpItems, 'locations' => $locations, 'years' => $years, 'perKib' => $perKib,
         'totalUnits' => (int) Asset::sum('quantity'), 'totalTypes' => Asset::count(),
         'totalBhp' => (int) BhpItem::sum('current_stock'), 'totalRooms' => Location::count(),
-        'borrowed' => (int) AssetOutflow::where('location_type', 'Luar Sekolah')->whereNull('return_date')->count(),
+        'borrowed' => (int) AssetOutflow::where('location_type', 'Luar Sekolah')->whereRaw('(COALESCE(quantity,1) - COALESCE(returned_quantity,0)) > 0')->sum(DB::raw('COALESCE(quantity,1) - COALESCE(returned_quantity,0)')),
     ]);
 })->name('preview');
 

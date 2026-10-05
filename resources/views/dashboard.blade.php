@@ -51,7 +51,7 @@
         </div>
         <div class="mt-3">
             <h4 class="text-xl font-bold text-slate-900 leading-none">{{ $borrowed }}</h4>
-            <p class="text-[10px] text-slate-500 mt-1">Belum Kembali</p>
+            <p class="text-[10px] text-slate-500 mt-1">Unit Belum Kembali</p>
         </div>
     </div>
     <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80">
@@ -74,13 +74,15 @@
                         <th class="px-4 py-3 text-left">Nama Aset</th>
                         <th class="px-4 py-3 text-left">Peminjam</th>
                         <th class="px-4 py-3 text-left">Tgl Pinjam</th>
+                        <th class="px-4 py-3 text-right">Sisa</th>
                     </tr>
                 </thead>
                 <tbody>@forelse($activeOutflows as $o)<tr class="border-b border-slate-100 hover:bg-slate-50">
                         <td class="px-4 py-3"><div class="font-semibold">{{ $o->asset->name ?? '-' }}</div><div class="font-mono text-xs text-blue-600">{{ $o->asset->asset_code ?? '-' }}</div></td>
                         <td class="px-4 py-3">{{ $o->borrower_name ?? '-' }}</td>
                         <td class="px-4 py-3">{{ $o->loan_date?->format('d-m-Y') ?? '-' }}</td>
-                    </tr>@empty<tr><td colspan="3" class="px-4 py-6 text-center text-slate-500">Kosong.</td></tr>@endforelse</tbody>
+                        <td class="px-4 py-3 text-right">{{ $o->outstandingQty() }} / {{ $o->borrowedQty() }}</td>
+                    </tr>@empty<tr><td colspan="4" class="px-4 py-6 text-center text-slate-500">Kosong.</td></tr>@endforelse</tbody>
             </table>
         </div>
     </div>
