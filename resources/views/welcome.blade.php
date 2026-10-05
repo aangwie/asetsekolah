@@ -94,7 +94,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col text-slate-800" x-data="{ modalOpen: false, selectedAsset: {} }">
+<body class="min-h-screen flex flex-col text-slate-800">
 
     <!-- Navbar / Header Utama -->
     <header class="bg-blue-900 text-white shadow-lg sticky top-0 z-30">
@@ -361,7 +361,7 @@
 <td>{{ $a->location?->name ?? '-' }}</td>
 <td class="text-center font-semibold">{{ $a->procurement_year ?? $a->acquisition_date?->format('Y') }}</td>
 <td><span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium {{ $condBadge[$a->condition] ?? 'bg-slate-100 text-slate-700' }}">{{ ucwords(str_replace('_',' ',$a->condition)) }} ({{ ucfirst($a->status) }})</span></td>
-<td class="text-center"><button @click='selectedAsset = @js(['code'=>$a->asset_code,'name'=>$a->name,'category'=>($kibLabel[$a->kib_type] ?? $a->kib_type),'year'=>(string)($a->procurement_year ?? $a->acquisition_date?->format('Y')),'location'=>($a->location?->name ?? '-'),'condition'=>($a->condition.' ('.$a->status.')'),'spec'=>($a->notes ?? '-')]); modalOpen = true' class="p-2 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 transition" title="Lihat Detail"><i class="fa-solid fa-qrcode text-sm"></i></button></td></tr>
+<td class="text-center"><button type="button" onclick="openQrModal(this)" data-qr="{{ 'Nama Barang: '.$a->name.chr(10).'Kode Barang: '.$a->asset_code.chr(10).'Jumlah: '.($a->quantity ?? 1) }}" data-code="{{ $a->asset_code }}" data-name="{{ $a->name }}" data-category="{{ $kibLabel[$a->kib_type] ?? $a->kib_type }}" class="p-2 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 transition" title="Lihat QR Code"><i class="fa-solid fa-qrcode text-sm"></i></button></td></tr>
 @endforeach
 @foreach(($bhpItems ?? collect()) as $b)
 <tr><td class="text-center font-medium text-slate-400">{{ ($assets ?? collect())->count()+$loop->iteration }}</td>
@@ -370,7 +370,7 @@
 <td><span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-teal-100 text-teal-800">Barang Habis Pakai</span></td>
 <td>Gudang BHP</td><td class="text-center font-semibold">-</td>
 <td>@if($b->current_stock<=$b->minimum_stock)<span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-rose-100 text-rose-800">Stok: {{ $b->current_stock }} {{ $b->unit }} (Tipis)</span>@else<span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-emerald-100 text-emerald-800">Stok: {{ $b->current_stock }} {{ $b->unit }}</span>@endif</td>
-<td class="text-center"><button @click='selectedAsset = @js(['code'=>$b->code,'name'=>$b->name,'category'=>'Barang Habis Pakai (BHP)','year'=>'-','location'=>'Gudang BHP','condition'=>('Stok: '.$b->current_stock.' '.$b->unit),'spec'=>('Kategori '.$b->category.', minimum '.$b->minimum_stock.' '.$b->unit)]); modalOpen = true' class="p-2 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 transition" title="Lihat Detail"><i class="fa-solid fa-qrcode text-sm"></i></button></td></tr>
+<td class="text-center"><button type="button" onclick="openQrModal(this)" data-qr="{{ 'Nama Barang: '.$b->name.chr(10).'Kode Barang: '.$b->code.chr(10).'Jumlah: '.$b->current_stock.' '.$b->unit }}" data-code="{{ $b->code }}" data-name="{{ $b->name }}" data-category="Barang Habis Pakai (BHP)" class="p-2 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 transition" title="Lihat QR Code"><i class="fa-solid fa-qrcode text-sm"></i></button></td></tr>
 @endforeach
 @if(($assets ?? collect())->isEmpty() && ($bhpItems ?? collect())->isEmpty())
 <tr><td colspan="8" class="text-center py-8 text-sm text-slate-500">Belum ada data inventaris.</td></tr>
@@ -382,69 +382,18 @@
 
     </main>
 
-    <!-- Modal Detail Aset & Label QR Code (Alpine.js) -->
-    <div x-show="modalOpen" 
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" 
-         style="display: none;">
-        
-        <div @click.away="modalOpen = false" class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-5">
-            <!-- Modal Header -->
-            <div class="flex items-start justify-between border-b border-slate-100 pb-3">
-                <div>
-                    <span class="text-xs font-bold text-blue-600 uppercase tracking-wider" x-text="selectedAsset.category"></span>
-                    <h3 class="text-xl font-extrabold text-slate-900" x-text="selectedAsset.name"></h3>
-                </div>
-                <button @click="modalOpen = false" class="text-slate-400 hover:text-slate-600 p-1">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <!-- Modal Content: Dynamic QR Code Preview & Details -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200/70">
-                <!-- QR Code Display -->
-                <div class="sm:col-span-1 flex flex-col items-center justify-center bg-white p-3 rounded-lg shadow-sm border border-slate-200">
-                    <img :src="'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(selectedAsset.code)" 
-                         alt="QR Code Label" class="w-28 h-28 object-contain">
-                    <span class="text-[10px] font-mono font-bold text-slate-700 mt-2 text-center" x-text="selectedAsset.code"></span>
-                </div>
-
-                <!-- Asset Attributes -->
-                <div class="sm:col-span-2 space-y-2 text-xs text-slate-700">
-                    <div>
-                        <span class="font-semibold text-slate-500 block">Lokasi Penyimpanan:</span>
-                        <span class="font-medium text-slate-900" x-text="selectedAsset.location"></span>
-                    </div>
-                    <div>
-                        <span class="font-semibold text-slate-500 block">Tahun Perolehan:</span>
-                        <span class="font-medium text-slate-900" x-text="selectedAsset.year"></span>
-                    </div>
-                    <div>
-                        <span class="font-semibold text-slate-500 block">Kondisi / Status Stok:</span>
-                        <span class="font-medium text-slate-900" x-text="selectedAsset.condition"></span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Additional Specs -->
-            <div>
-                <h4 class="text-xs font-semibold uppercase text-slate-500 mb-1">Spesifikasi & Catatan Inventaris:</h4>
-                <p class="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-200" x-text="selectedAsset.spec"></p>
-            </div>
-
-            <!-- Modal Actions -->
-            <div class="flex items-center justify-end space-x-2 pt-2">
-                <button @click="modalOpen = false" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold hover:bg-slate-200 transition">
-                    Tutup
-                </button>
-                <button onclick="window.print()" class="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition flex items-center">
-                    <i class="fa-solid fa-print mr-1.5"></i> Cetak Label QR
-                </button>
+    <!-- Popup QR Code -->
+    <div id="qr-modal" hidden class="fixed inset-0 z-50 items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div class="relative bg-white rounded-2xl max-w-xs w-full p-5 shadow-2xl border border-slate-100 text-center">
+            <button type="button" onclick="closeQrModal()" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center"><i class="fa-solid fa-xmark text-sm"></i></button>
+            <p id="qr-category" class="text-[11px] font-bold text-blue-600 uppercase tracking-wider"></p>
+            <h3 id="qr-name" class="text-base font-extrabold text-slate-900 leading-tight"></h3>
+            <img id="qr-image" src="" alt="QR Code Label" class="w-48 h-48 mx-auto object-contain border border-slate-200 rounded-xl p-2 bg-white mt-3">
+            <p id="qr-code" class="text-xs font-mono font-bold text-slate-700 mt-2"></p>
+            <pre id="qr-text" class="text-[11px] text-left text-slate-600 bg-slate-50 border border-slate-200 rounded-lg p-2.5 mt-2 whitespace-pre-wrap font-sans"></pre>
+            <div class="flex items-center justify-center space-x-2 pt-2">
+                <button type="button" onclick="closeQrModal()" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold hover:bg-slate-200 transition">Tutup</button>
+                <button type="button" onclick="window.print()" class="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition flex items-center"><i class="fa-solid fa-print mr-1.5"></i> Cetak Label QR</button>
             </div>
         </div>
     </div>
@@ -516,6 +465,27 @@
             // 3. Filter Lokasi (Kolom Index 4)
             $('#filter_location').on('change', function() {
                 var v=$(this).val();table.column(4).search(v?('^'+v.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'$'):'',true,false).draw();
+            });
+
+            window.openQrModal = function (btn) {
+                var qr = btn.getAttribute('data-qr') || btn.getAttribute('data-code') || '';
+                document.getElementById('qr-category').textContent = btn.getAttribute('data-category') || '';
+                document.getElementById('qr-name').textContent = btn.getAttribute('data-name') || '';
+                document.getElementById('qr-code').textContent = btn.getAttribute('data-code') || '';
+                document.getElementById('qr-text').textContent = qr;
+                document.getElementById('qr-image').src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(qr);
+                document.getElementById('qr-modal').removeAttribute('hidden');
+                document.getElementById('qr-modal').classList.add('flex');
+            };
+            window.closeQrModal = function () {
+                document.getElementById('qr-modal').setAttribute('hidden', '');
+                document.getElementById('qr-modal').classList.remove('flex');
+            };
+            document.getElementById('qr-modal').addEventListener('click', function (e) {
+                if (e.target === this) window.closeQrModal();
+            });
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') window.closeQrModal();
             });
 
             // Reset
