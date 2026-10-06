@@ -1,58 +1,217 @@
 @extends('layouts.app')
 @section('title', isset($asset) ? 'Ubah Aset Masuk' : 'Catat Aset Masuk')
 @section('content')
-<div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
-<div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4"><div class="flex items-center space-x-2"><i class="fa-solid fa-arrow-right-to-bracket text-blue-600"></i><h3 class="font-bold text-slate-800 text-sm uppercase tracking-wider">{{ isset($asset) ? 'Ubah Aset Masuk' : 'Catat Aset Masuk' }}</h3></div><a href="{{ route('transactions.asset.masuk') }}" class="text-xs font-medium text-blue-600 hover:text-blue-800">Lihat daftar penuh</a></div>
-<form method="POST" id="assetMasukForm" onsubmit="return stripRupiah()" action="{{ isset($asset) ? route('transactions.asset.masuk.update', $asset) : route('transactions.asset.masuk.store') }}" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-@csrf
-@if(isset($asset))@method('PUT')@endif
-<label class="block text-xs font-bold text-slate-700 uppercase">Tahun Perolehan<select id="procurement_year" name="procurement_year" required class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">@for($y = $yearNow; $y >= 1990; $y--)<option value="{{ $y }}" @selected(old('procurement_year', isset($asset) ? $asset->procurement_year : null) == $y)>{{ $y }}</option>@endfor</select></label>
-<label class="block text-xs font-bold text-slate-700 uppercase">Tanggal Perolehan<input id="acquisition_date" name="acquisition_date" type="date" value="{{ old('acquisition_date', isset($asset) ? $asset->acquisition_date->format('Y-m-d') : '') }}" required class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></label>
-<label class="block text-xs font-bold text-slate-700 uppercase">Jenis Aset<select id="kib_type" name="kib_type" required class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">@foreach(['A' => 'KIB A – Tanah', 'B' => 'KIB B – Peralatan & Mesin', 'C' => 'KIB C – Gedung & Bangunan', 'D' => 'KIB D – Jalan, Irigasi & Jaringan', 'E' => 'KIB E – Aset Tetap Lainnya'] as $v => $l)<option value="{{ $v }}" @selected(old('kib_type', isset($asset) ? $asset->kib_type : null) === $v)>{{ $l }}</option>@endforeach</select></label>
-<label class="block text-xs font-bold text-slate-700 uppercase">Kode Barang<input name="asset_code" value="{{ old('asset_code', isset($asset) ? $asset->asset_code : '') }}" required class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm font-mono outline-none focus:ring-2 focus:ring-blue-500" placeholder="AST-2026-KIBB-0012"></label>
-<label class="block text-xs font-bold text-slate-700 uppercase md:col-span-2">Nama Barang<input name="name" value="{{ old('name', isset($asset) ? $asset->name : '') }}" required class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></label>
-<label class="block text-xs font-bold text-slate-700 uppercase">Jumlah Barang<input id="quantity" name="quantity" type="number" min="1" step="1" value="{{ old('quantity', isset($asset) ? $asset->quantity : 1) }}" required class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></label>
-<label class="block text-xs font-bold text-slate-700 uppercase">Harga Satuan (Rp)<input id="unit_price" name="unit_price" type="text" inputmode="numeric" value="{{ old('unit_price', isset($asset) ? $asset->unit_price : '') }}" required placeholder="1.000.000" class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></label>
-<label class="block text-xs font-bold text-slate-700 uppercase">Harga Perolehan (Rp)<input id="acquisition_value" name="acquisition_value" type="text" inputmode="numeric" value="{{ old('acquisition_value', isset($asset) ? $asset->acquisition_value : '') }}" readonly tabindex="-1" placeholder="otomatis: jumlah × satuan" class="mt-1 w-full bg-slate-100 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></label>
-<label class="block text-xs font-bold text-slate-700 uppercase">Sumber Dana<select name="funding_source" required class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">@foreach(['BOS', 'DAK', 'HIBAH', 'Komite', 'APBN', 'APBD', 'Lainnya'] as $s)<option value="{{ $s }}" @selected(old('funding_source', isset($asset) ? $asset->funding_source : null) === $s)>{{ $s }}</option>@endforeach</select></label>
-<label class="block text-xs font-bold text-slate-700 uppercase">Lokasi (opsional)<select name="location_id" class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"><option value="">—</option>@foreach($locations as $loc)<option value="{{ $loc->id }}" @selected(old('location_id', isset($asset) ? $asset->location_id : null) == $loc->id)>{{ $loc->name }} ({{ $loc->building->name ?? 'Tanpa Gedung' }})</option>@endforeach</select></label>
-<div id="kibA" class="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4"><label class="block text-xs font-bold text-slate-700 uppercase">Luas Tanah (m²)<input name="surface_area" type="number" step="0.01" min="0" value="{{ old('surface_area', $detail?->surface_area ?? '') }}" class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></label><label class="block text-xs font-bold text-slate-700 uppercase">Nomor Sertifikat<input name="certificate_number" value="{{ old('certificate_number', $detail?->certificate_number ?? '') }}" class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></label></div><div id="kibB" class="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4"><label class="block text-xs font-bold text-slate-700 uppercase">Merk<input name="brand" value="{{ old('brand', $detail?->brand ?? '') }}" class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></label><label class="block text-xs font-bold text-slate-700 uppercase">Spesifikasi<input name="specification" value="{{ old('specification', $detail?->size_material ?? '') }}" class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></label></div><div id="kibC" class="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4"><label class="block text-xs font-bold text-slate-700 uppercase">Luas (m²)<input name="floor_area" type="number" step="0.01" min="0" value="{{ old('floor_area', $detail?->floor_area ?? '') }}" class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></label><label class="block text-xs font-bold text-slate-700 uppercase">Jenis Konstruksi<select name="building_condition" class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"><option value="">—</option>@foreach(['Bertingkat', 'Tidak Bertingkat'] as $k)<option value="{{ $k }}" @selected(old('building_condition', $detail?->building_condition ?? '') === $k)>{{ $k }}</option>@endforeach</select></label></div><div id="kibD" class="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4"><label class="block text-xs font-bold text-slate-700 uppercase">Panjang (m)<input name="length" type="number" step="0.01" min="0" value="{{ old('length', $detail?->length ?? '') }}" class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></label><label class="block text-xs font-bold text-slate-700 uppercase">Lebar (m)<input name="width" type="number" step="0.01" min="0" value="{{ old('width', $detail?->width ?? '') }}" class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></label></div><div id="kibE" class="md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4"><label class="block text-xs font-bold text-slate-700 uppercase">Judul Buku<input name="book_title" value="{{ old('book_title', $detail?->book_title ?? '') }}" class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></label><label class="block text-xs font-bold text-slate-700 uppercase">Pengarang<input name="book_author" value="{{ old('book_author', $detail?->book_author ?? '') }}" class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></label><label class="block text-xs font-bold text-slate-700 uppercase">Tahun Terbit<input name="publication_year" type="number" min="1900" max="{{ $yearNow + 1 }}" value="{{ old('publication_year', $detail?->publication_year ?? '') }}" class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></label></div><label class="block text-xs font-bold text-slate-700 uppercase md:col-span-3">Bukti Belanja (nota/kwitansi/BAST, gambar/PDF, maks 500KB)<input name="proof" type="file" accept=".jpg,.jpeg,.png,.webp,.pdf" class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white file:text-xs file:font-medium hover:file:bg-blue-700"></label>
-<div class="md:col-span-3 flex items-center gap-2"><button class="inline-flex items-center px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition"><i class="fa-solid fa-floppy-disk mr-2"></i> {{ isset($asset) ? 'Update' : 'Simpan' }}</button>@if(isset($asset))<a href="{{ route('transactions.asset.masuk.create') }}" class="inline-flex items-center px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium transition">Batal</a>@endif</div>
-</form>
-</div>
-<div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 overflow-x-auto"><h4 class="font-bold text-slate-800 text-sm uppercase tracking-wider mb-3">Hasil Input</h4><table id="assetMasukTable" class="w-full text-sm">
-<thead><tr class="border-b-2 border-slate-200 text-slate-500 text-xs uppercase"><th class="px-4 py-3 text-left">Tanggal</th><th class="px-4 py-3 text-left">Jenis / Kode</th><th class="px-4 py-3 text-left">Nama</th><th class="px-4 py-3 text-right">Jml</th><th class="px-4 py-3 text-right">Satuan</th><th class="px-4 py-3 text-right">Perolehan</th><th class="px-4 py-3 text-left">Dana</th><th class="px-4 py-3 text-center">Bukti</th><th class="px-4 py-3 text-center">Aksi</th></tr></thead>
-<tbody>@forelse($assets as $a)<tr class="border-b border-slate-100 hover:bg-slate-50"><td class="px-4 py-3">{{ $a->acquisition_date->format('d-m-Y') }}</td><td class="px-4 py-3"><span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">KIB {{ $a->kib_type }}</span><div class="font-mono text-xs font-bold text-blue-600 mt-1">{{ $a->asset_code }}</div></td><td class="px-4 py-3 font-semibold">{{ $a->name }}</td><td class="px-4 py-3 text-right">{{ number_format($a->quantity ?? 1, 0, ',', '.') }}</td><td class="px-4 py-3 text-right">Rp {{ number_format($a->unit_price ?: ($a->quantity ? $a->acquisition_value / $a->quantity : $a->acquisition_value), 0, ',', '.') }}</td><td class="px-4 py-3 text-right">Rp {{ number_format($a->acquisition_value, 0, ',', '.') }}</td><td class="px-4 py-3">{{ $a->funding_source ?? '-' }}</td><td class="px-4 py-3 text-center">@if($a->proof_path)<button type="button" onclick="openProof('{{ asset('storage/'.$a->proof_path) }}', '{{ strtolower(pathinfo($a->proof_path, PATHINFO_EXTENSION)) === 'pdf' ? 'pdf' : 'img' }}')" class="text-blue-600 hover:text-blue-800" title="Lihat bukti"><i class="fa-solid fa-file-lines"></i></button>@else<span class="text-slate-300">-</span>@endif</td><td class="px-4 py-3 text-center whitespace-nowrap"><a href="{{ route('transactions.asset.masuk.edit', $a) }}" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-amber-100 text-amber-700 hover:bg-amber-200" title="Ubah"><i class="fa-solid fa-pencil text-xs"></i></a><form method="POST" action="{{ route('transactions.asset.masuk.destroy', $a) }}" class="inline" onsubmit="return confirmDelete(event, this)">@csrf @method('DELETE')<button class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 ml-1" title="Hapus"><i class="fa-solid fa-trash text-xs"></i></button></form></td></tr>@empty<tr><td colspan="9" class="px-4 py-6 text-center text-slate-500">Belum ada data.</td></tr>@endforelse</tbody>
-</table></div>
-<script>
-const py = document.getElementById('procurement_year'), ad = document.getElementById('acquisition_date');
-const kibSel = document.getElementById('kib_type');
-function syncKib() { ['A','B','C','D','E'].forEach(t => { const el = document.getElementById('kib' + t); if (el) el.style.display = (kibSel && kibSel.value === t) ? '' : 'none'; }); }
-if (kibSel) { kibSel.addEventListener('change', syncKib); syncKib(); }
-py.addEventListener('change', () => { if (!ad.value || !ad.value.startsWith(py.value)) ad.value = py.value + (ad.value ? ad.value.slice(4) : '-01-01'); });
-ad.addEventListener('change', () => { if (ad.value) py.value = ad.value.slice(0, 4); });
-const rp = document.getElementById('acquisition_value'), qty = document.getElementById('quantity'), up = document.getElementById('unit_price');
-const fmtRp = v => v.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-const toNum = v => parseInt((v || '').replace(/\D/g, ''), 10) || 0;
-function calcTotal() { if (qty && up && rp) rp.value = fmtRp(String((parseInt(qty.value, 10) || 0) * toNum(up.value))); }
-if (rp) { if (rp.value) rp.value = fmtRp(rp.value); }
-if (up) { if (up.value) up.value = fmtRp(up.value); up.addEventListener('input', () => { up.value = fmtRp(up.value); calcTotal(); }); }
-if (qty) { qty.addEventListener('input', calcTotal); }
-calcTotal();
-function stripRupiah() { if (rp) rp.value = rp.value.replace(/\./g, ''); if (up) up.value = up.value.replace(/\./g, ''); return true; }
-function openProof(url, kind) { const lb = document.getElementById('proofLightbox'), im = document.getElementById('proofImg'), fr = document.getElementById('proofFrame'); im.classList.add('hidden'); fr.classList.add('hidden'); if (kind === 'pdf') { fr.src = url; fr.classList.remove('hidden'); } else { im.src = url; im.classList.remove('hidden'); } lb.classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
-function closeProof() { const lb = document.getElementById('proofLightbox'), im = document.getElementById('proofImg'), fr = document.getElementById('proofFrame'); lb.classList.add('hidden'); im.src = ''; fr.src = ''; document.body.style.overflow = ''; }
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeProof(); });
-</script>
-<div id="proofLightbox" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onclick="if(event.target===this)closeProof()"><div class="bg-white rounded-2xl shadow-xl w-[75vw] h-[75vh] max-w-[75vw] max-h-[75vh] flex flex-col overflow-hidden"><div class="flex items-center justify-between px-4 py-2 border-b border-slate-200"><span class="text-xs font-bold uppercase tracking-wider text-slate-600">Bukti Belanja</span><button type="button" onclick="closeProof()" class="text-slate-500 hover:text-red-600 text-lg leading-none">&times;</button></div><div class="flex-1 min-h-0"><img id="proofImg" class="hidden w-full h-full object-contain bg-slate-50" alt="Bukti"><iframe id="proofFrame" class="hidden w-full h-full bg-white" title="Bukti PDF"></iframe></div></div></div>
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+            <div class="flex items-center space-x-2"><i class="fa-solid fa-arrow-right-to-bracket text-blue-600"></i>
+                <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wider">
+                    {{ isset($asset) ? 'Ubah Aset Masuk' : 'Catat Aset Masuk' }}</h3>
+            </div><a href="{{ route('transactions.asset.masuk') }}"
+                class="text-xs font-medium text-blue-600 hover:text-blue-800">Lihat daftar penuh</a>
+        </div>
+        <form method="POST" id="assetMasukForm" onsubmit="return stripRupiah()"
+            action="{{ isset($asset) ? route('transactions.asset.masuk.update', $asset) : route('transactions.asset.masuk.store') }}"
+            enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            @csrf
+            @if(isset($asset))@method('PUT')@endif
+            <label class="block text-xs font-bold text-slate-700 uppercase">Tahun Perolehan<select id="procurement_year"
+                    name="procurement_year" required
+                    class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">@for($y = $yearNow; $y >= 1990; $y--)
+                    <option value="{{ $y }}" @selected(old('procurement_year', isset($asset) ? $asset->procurement_year : null) == $y)>{{ $y }}</option>@endfor
+                </select></label>
+            <label class="block text-xs font-bold text-slate-700 uppercase">Tanggal Perolehan<input id="acquisition_date"
+                    name="acquisition_date" type="date"
+                    value="{{ old('acquisition_date', isset($asset) ? $asset->acquisition_date->format('Y-m-d') : '') }}"
+                    required
+                    class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></label>
+            <label class="block text-xs font-bold text-slate-700 uppercase">Jenis Aset<select id="kib_type" name="kib_type"
+                    required
+                    class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">@foreach(['A' => 'KIB A – Tanah', 'B' => 'KIB B – Peralatan & Mesin', 'C' => 'KIB C – Gedung & Bangunan', 'D' => 'KIB D – Jalan, Irigasi & Jaringan', 'E' => 'KIB E – Aset Tetap Lainnya'] as $v => $l)
+                        <option value="{{ $v }}" @selected(old('kib_type', isset($asset) ? $asset->kib_type : null) === $v)>
+                    {{ $l }}</option>@endforeach
+                </select></label>
+            <label class="block text-xs font-bold text-slate-700 uppercase">Kode Barang<input name="asset_code"
+                    value="{{ old('asset_code', isset($asset) ? $asset->asset_code : '') }}" required
+                    class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm font-mono outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="AST-2026-KIBB-0012"></label>
+            <label class="block text-xs font-bold text-slate-700 uppercase md:col-span-2">Nama Barang<input name="name"
+                    value="{{ old('name', isset($asset) ? $asset->name : '') }}" required
+                    class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></label>
+            <label class="block text-xs font-bold text-slate-700 uppercase">Jumlah Barang<input id="quantity"
+                    name="quantity" type="number" min="1" step="1"
+                    value="{{ old('quantity', isset($asset) ? $asset->quantity : 1) }}" required
+                    class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></label>
+            <label class="block text-xs font-bold text-slate-700 uppercase">Harga Satuan (Rp)<input id="unit_price"
+                    name="unit_price" type="text" inputmode="numeric"
+                    value="{{ old('unit_price', isset($asset) ? $asset->unit_price : '') }}" required
+                    placeholder="1.000.000"
+                    class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></label>
+            <label class="block text-xs font-bold text-slate-700 uppercase">Harga Perolehan (Rp)<input
+                    id="acquisition_value" name="acquisition_value" type="text" inputmode="numeric"
+                    value="{{ old('acquisition_value', isset($asset) ? $asset->acquisition_value : '') }}" readonly
+                    tabindex="-1" placeholder="otomatis: jumlah × satuan"
+                    class="mt-1 w-full bg-slate-100 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></label>
+            <label class="block text-xs font-bold text-slate-700 uppercase">Sumber Dana<select name="funding_source"
+                    required
+                    class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">@foreach(['BOS', 'DAK', 'HIBAH', 'Komite', 'APBN', 'APBD', 'Lainnya'] as $s)
+                    <option value="{{ $s }}" @selected(old('funding_source', isset($asset) ? $asset->funding_source : null) === $s)>{{ $s }}</option>@endforeach
+                </select></label>
+            <label class="block text-xs font-bold text-slate-700 uppercase">Lokasi (opsional)<select name="location_id"
+                    class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">—</option>@foreach($locations as $loc)
+                    <option value="{{ $loc->id }}" @selected(old('location_id', isset($asset) ? $asset->location_id : null) == $loc->id)>{{ $loc->name }} ({{ $loc->building->name ?? 'Tanpa Gedung' }})</option>@endforeach
+                </select></label>
+            <div id="kibA" class="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4"><label
+                    class="block text-xs font-bold text-slate-700 uppercase">Luas Tanah (m²)<input name="surface_area"
+                        type="number" step="0.01" min="0" value="{{ old('surface_area', $detail?->surface_area ?? '') }}"
+                        class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></label><label
+                    class="block text-xs font-bold text-slate-700 uppercase">Nomor Sertifikat<input
+                        name="certificate_number"
+                        value="{{ old('certificate_number', $detail?->certificate_number ?? '') }}"
+                        class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></label>
+            </div>
+            <div id="kibB" class="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4"><label
+                    class="block text-xs font-bold text-slate-700 uppercase">Merk<input name="brand"
+                        value="{{ old('brand', $detail?->brand ?? '') }}"
+                        class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></label><label
+                    class="block text-xs font-bold text-slate-700 uppercase">Spesifikasi<input name="specification"
+                        value="{{ old('specification', $detail?->size_material ?? '') }}"
+                        class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></label>
+            </div>
+            <div id="kibC" class="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4"><label
+                    class="block text-xs font-bold text-slate-700 uppercase">Luas (m²)<input name="floor_area" type="number"
+                        step="0.01" min="0" value="{{ old('floor_area', $detail?->floor_area ?? '') }}"
+                        class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></label><label
+                    class="block text-xs font-bold text-slate-700 uppercase">Jenis Konstruksi<select
+                        name="building_condition"
+                        class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">—</option>@foreach(['Bertingkat', 'Tidak Bertingkat'] as $k)
+                        <option value="{{ $k }}" @selected(old('building_condition', $detail?->building_condition ?? '') === $k)>{{ $k }}</option>@endforeach
+                    </select></label></div>
+            <div id="kibD" class="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4"><label
+                    class="block text-xs font-bold text-slate-700 uppercase">Panjang (m)<input name="length" type="number"
+                        step="0.01" min="0" value="{{ old('length', $detail?->length ?? '') }}"
+                        class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></label><label
+                    class="block text-xs font-bold text-slate-700 uppercase">Lebar (m)<input name="width" type="number"
+                        step="0.01" min="0" value="{{ old('width', $detail?->width ?? '') }}"
+                        class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></label>
+            </div>
+            <div id="kibE" class="md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4"><label
+                    class="block text-xs font-bold text-slate-700 uppercase">Judul Buku<input name="book_title"
+                        value="{{ old('book_title', $detail?->book_title ?? '') }}"
+                        class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></label><label
+                    class="block text-xs font-bold text-slate-700 uppercase">Pengarang<input name="book_author"
+                        value="{{ old('book_author', $detail?->book_author ?? '') }}"
+                        class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></label><label
+                    class="block text-xs font-bold text-slate-700 uppercase">Tahun Terbit<input name="publication_year"
+                        type="number" min="1900" max="{{ $yearNow + 1 }}"
+                        value="{{ old('publication_year', $detail?->publication_year ?? '') }}"
+                        class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500"></label>
+            </div><label class="block text-xs font-bold text-slate-700 uppercase md:col-span-3">Bukti Belanja
+                (nota/kwitansi/BAST, gambar/PDF, maks 500KB)<input name="proof" type="file"
+                    accept=".jpg,.jpeg,.png,.webp,.pdf"
+                    class="mt-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-blue-600 file:text-white file:text-xs file:font-medium hover:file:bg-blue-700"></label>
+            <div class="md:col-span-3 flex items-center gap-2"><button
+                    class="inline-flex items-center px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition"><i
+                        class="fa-solid fa-floppy-disk mr-2"></i>
+                    {{ isset($asset) ? 'Update' : 'Simpan' }}</button>@if(isset($asset))<a
+                        href="{{ route('transactions.asset.masuk.create') }}"
+                    class="inline-flex items-center px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium transition">Batal</a>@endif
+            </div>
+        </form>
+    </div>
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 overflow-x-auto">
+        <h4 class="font-bold text-slate-800 text-sm uppercase tracking-wider mb-3">Hasil Input</h4>
+        <table id="assetMasukTable" class="w-full text-sm">
+            <thead>
+                <tr class="border-b-2 border-slate-200 text-slate-500 text-xs uppercase">
+                    <th class="px-4 py-3 text-left">Tanggal</th>
+                    <th class="px-4 py-3 text-left">Jenis / Kode</th>
+                    <th class="px-4 py-3 text-left">Nama</th>
+                    <th class="px-4 py-3 text-right">Jml</th>
+                    <th class="px-4 py-3 text-right">Satuan</th>
+                    <th class="px-4 py-3 text-right">Perolehan</th>
+                    <th class="px-4 py-3 text-left">Dana</th>
+                    <th class="px-4 py-3 text-center">Bukti</th>
+                    <th class="px-4 py-3 text-center">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>@forelse($assets as $a)
+                <tr class="border-b border-slate-100 hover:bg-slate-50">
+                    <td class="px-4 py-3">{{ $a->acquisition_date->format('d-m-Y') }}</td>
+                    <td class="px-4 py-3"><span
+                            class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">KIB
+                            {{ $a->kib_type }}</span>
+                        <div class="font-mono text-xs font-bold text-blue-600 mt-1">{{ $a->asset_code }}</div>
+                    </td>
+                    <td class="px-4 py-3 font-semibold">{{ $a->name }}</td>
+                    <td class="px-4 py-3 text-right">{{ number_format($a->quantity ?? 1, 0, ',', '.') }}</td>
+                    <td class="px-4 py-3 text-right">Rp
+                        {{ number_format($a->unit_price ?: ($a->quantity ? $a->acquisition_value / $a->quantity : $a->acquisition_value), 0, ',', '.') }}
+                    </td>
+                    <td class="px-4 py-3 text-right">Rp {{ number_format($a->acquisition_value, 0, ',', '.') }}</td>
+                    <td class="px-4 py-3">{{ $a->funding_source ?? '-' }}</td>
+                    <td class="px-4 py-3 text-center">@if($a->proof_path)<button type="button"
+                        onclick="openProof('{{ asset('storage/' . $a->proof_path) }}', '{{ strtolower(pathinfo($a->proof_path, PATHINFO_EXTENSION)) === 'pdf' ? 'pdf' : 'img' }}')"
+                        class="text-blue-600 hover:text-blue-800" title="Lihat bukti"><i
+                    class="fa-solid fa-file-lines"></i></button>@else<span class="text-slate-300">-</span>@endif
+                    </td>
+                    <td class="px-4 py-3 text-center whitespace-nowrap"><a
+                            href="{{ route('transactions.asset.masuk.edit', $a) }}"
+                            class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-amber-100 text-amber-700 hover:bg-amber-200"
+                            title="Ubah"><i class="fa-solid fa-pencil text-xs"></i></a>
+                        <form method="POST" action="{{ route('transactions.asset.masuk.destroy', $a) }}" class="inline"
+                            onsubmit="return confirmDelete(event, this)">@csrf @method('DELETE')<button
+                                class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 ml-1"
+                                title="Hapus"><i class="fa-solid fa-trash text-xs"></i></button></form>
+                    </td>
+            </tr>@empty<tr>
+                    <td colspan="9" class="px-4 py-6 text-center text-slate-500">Belum ada data.</td>
+                </tr>@endforelse
+            </tbody>
+        </table>
+    </div>
+    <script>
+        const py = document.getElementById('procurement_year'), ad = document.getElementById('acquisition_date');
+        const kibSel = document.getElementById('kib_type');
+        function syncKib() { ['A', 'B', 'C', 'D', 'E'].forEach(t => { const el = document.getElementById('kib' + t); if (el) el.style.display = (kibSel && kibSel.value === t) ? '' : 'none'; }); }
+        if (kibSel) { kibSel.addEventListener('change', syncKib); syncKib(); }
+        py.addEventListener('change', () => { if (!ad.value || !ad.value.startsWith(py.value)) ad.value = py.value + (ad.value ? ad.value.slice(4) : '-01-01'); });
+        ad.addEventListener('change', () => { if (ad.value) py.value = ad.value.slice(0, 4); });
+        const rp = document.getElementById('acquisition_value'), qty = document.getElementById('quantity'), up = document.getElementById('unit_price');
+        const fmtRp = v => v.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        const toNum = v => parseInt((v || '').replace(/\D/g, ''), 10) || 0;
+        function calcTotal() { if (qty && up && rp) rp.value = fmtRp(String((parseInt(qty.value, 10) || 0) * toNum(up.value))); }
+        if (rp) { if (rp.value) rp.value = fmtRp(rp.value); }
+        if (up) { if (up.value) up.value = fmtRp(up.value); up.addEventListener('input', () => { up.value = fmtRp(up.value); calcTotal(); }); }
+        if (qty) { qty.addEventListener('input', calcTotal); }
+        calcTotal();
+        function stripRupiah() { if (rp) rp.value = rp.value.replace(/\./g, ''); if (up) up.value = up.value.replace(/\./g, ''); return true; }
+        function openProof(url, kind) { const lb = document.getElementById('proofLightbox'), im = document.getElementById('proofImg'), fr = document.getElementById('proofFrame'); im.classList.add('hidden'); fr.classList.add('hidden'); if (kind === 'pdf') { fr.src = url; fr.classList.remove('hidden'); } else { im.src = url; im.classList.remove('hidden'); } lb.classList.remove('hidden'); document.body.style.overflow = 'hidden'; }
+        function closeProof() { const lb = document.getElementById('proofLightbox'), im = document.getElementById('proofImg'), fr = document.getElementById('proofFrame'); lb.classList.add('hidden'); im.src = ''; fr.src = ''; document.body.style.overflow = ''; }
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeProof(); });
+    </script>
+    <div id="proofLightbox" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+        onclick="if(event.target===this)closeProof()">
+        <div
+            class="bg-white rounded-2xl shadow-xl w-[75vw] h-[75vh] max-w-[75vw] max-h-[75vh] flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between px-4 py-2 border-b border-slate-200"><span
+                    class="text-xs font-bold uppercase tracking-wider text-slate-600">Bukti Belanja</span><button
+                    type="button" onclick="closeProof()"
+                    class="text-slate-500 hover:text-red-600 text-lg leading-none">&times;</button></div>
+            <div class="flex-1 min-h-0"><img id="proofImg" class="hidden w-full h-full object-contain bg-slate-50"
+                    alt="Bukti"><iframe id="proofFrame" class="hidden w-full h-full bg-white" title="Bukti PDF"></iframe>
+            </div>
+        </div>
+    </div>
 @endsection
 @section('scripts')
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-(function ($) { $(function () { $('#assetMasukTable').DataTable({ responsive: true, pageLength: 10, language: { search: "Cari Data:", lengthMenu: "Tampilkan _MENU_ data", zeroRecords: "Data tidak ditemukan.", info: "Halaman _PAGE_ dari _PAGES_ (_TOTAL_ total data)", infoEmpty: "Tidak ada data tersedia", infoFiltered: "(difilter dari _MAX_ total data)", paginate: { first: "Awal", last: "Akhir", next: "Lanjut", previous: "Sebelumnya" } }, columnDefs: [{ targets: -1, orderable: false, searchable: false }] }); }); })(jQuery);
-function confirmDelete(e, f) { e.preventDefault(); Swal.fire({ title: 'Hapus aset?', text: 'Data terhapus permanen.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc2626', confirmButtonText: 'Ya, hapus', cancelButtonText: 'Batal' }).then(r => { if (r.isConfirmed) f.submit(); }); return false; }
-</script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        (function ($) { $(function () { $('#assetMasukTable').DataTable({ responsive: true, pageLength: 10, language: { search: "Cari Data:", lengthMenu: "Tampilkan _MENU_ data", zeroRecords: "Data tidak ditemukan.", info: "Halaman _PAGE_ dari _PAGES_ (_TOTAL_ total data)", infoEmpty: "Tidak ada data tersedia", infoFiltered: "(difilter dari _MAX_ total data)", paginate: { first: "Awal", last: "Akhir", next: "Lanjut", previous: "Sebelumnya" } }, columnDefs: [{ targets: -1, orderable: false, searchable: false }] }); }); })(jQuery);
+        function confirmDelete(e, f) { e.preventDefault(); Swal.fire({ title: 'Hapus aset?', text: 'Data terhapus permanen.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc2626', confirmButtonText: 'Ya, hapus', cancelButtonText: 'Batal' }).then(r => { if (r.isConfirmed) f.submit(); }); return false; }
+    </script>
 @endsection
